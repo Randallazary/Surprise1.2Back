@@ -30,7 +30,7 @@ const connectWithRetry = (uri) => {
 };
 
 // Conecta usando la URI local o de producción según sea necesario
-connectWithRetry(localURI); // Descomentar para entorno de desarrollo local
-//connectWithRetry(atlasURI); // Comentar para usar entorno local
+//connectWithRetry(localURI); // Descomentar para entorno de desarrollo local
+connectWithRetry(atlasURI); // Comentar para usar entorno local
 
 export default mongoose;
