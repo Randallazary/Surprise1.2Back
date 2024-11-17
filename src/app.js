@@ -12,7 +12,7 @@ import deslinde from './routes/Deslinde.routes.js';
 // Configuración de CORS para producción
 const listWhite = [
     'http://localhost:3000',  // Frontend en desarrollo
-    'https://frontend-alpha-six-22.vercel.app', // Frontend correcto en producción
+    'https://surprise1-2.vercel.app', // Frontend correcto en producción
 ];
 
 const corsOptions = {
