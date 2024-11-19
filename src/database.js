@@ -4,7 +4,7 @@ import net from 'net';
 
 // URI de MongoDB Atlas (Producción)
 // URI de MongoDB Atlas (Producción) cambiando la base de datos a 'Refaccionaria'
-const atlasURI = 'mongodb+srv://randyrubio06:FJ9KVOiNhRcb9cqJ@dbsurprise.u639y.mongodb.net/surprisedb';
+const atlasURI = 'mongodb+srv://randyrubio06:tacodepastor1@dbsurprise.u639y.mongodb.net/dbSurprise';
 
 
 // URI local para la base de datos 'Refaccionaria'
