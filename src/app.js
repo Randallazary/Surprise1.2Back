@@ -18,17 +18,17 @@ const listWhite = [
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // Permitir solicitudes sin origen (como Postman)
-        if (!origin) return callback(null, true);
-        if (listWhite.indexOf(origin) !== -1) {
-            callback(null, true);
+        // Permitir solicitudes sin origen (por ejemplo, herramientas como Postman)
+        if (!origin) {
+            return callback(null, true);
+        }
+        if (listWhite.includes(origin)) {
+            callback(null, true); // Permitir el origen si está en la lista blanca
         } else {
+            console.error(`CORS bloqueado para origen: ${origin}`); // Agregar mensaje de depuración
             callback(new Error('No permitido por CORS'));
         }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token','x-access-notification'],
+    }
 };
 
 
