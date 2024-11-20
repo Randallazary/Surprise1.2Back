@@ -11,14 +11,14 @@ const LOGIN_TIMEOUT = 1 * 60 * 1000;
 // Registro de usuario y verificación de cuenta
 export const signUp = async (req, res) => {
     try {
-        const { name, lastname, email, telefono, fechadenacimiento, user, preguntaSecreta, respuestaSecreta, password } = req.body;
+        const { name, lastname, email, telefono, user, preguntaSecreta, respuestaSecreta, password } = req.body;
         if (!name || !lastname || name.length < 3 || lastname.length < 3) return res.status(400).json({ message: "Datos incompletos o inválidos" });
 
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: "El correo ya existe" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ name, lastname, email, telefono, fechadenacimiento, user, preguntaSecreta, respuestaSecreta, password: hashedPassword, verified: false });
+        const newUser = new User({ name, lastname, email, telefono, user, preguntaSecreta, respuestaSecreta, password: hashedPassword, verified: false });
         const token = jwt.sign({ email: newUser.email }, SECRET, { expiresIn: '1h' });
 
         const verificationUrl = `http://localhost:27017/verify/${token}`;
