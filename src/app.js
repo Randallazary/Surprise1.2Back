@@ -7,28 +7,29 @@ import user from './routes/User.routes.js';
 import politicas from './routes/Politicas.routes.js';
 import terminos from './routes/Terminos.routes.js';
 import deslinde from './routes/Deslinde.routes.js';
+import logoRoutes from './routes/Logo.routes.js';
 
 // Configuración de CORS para producción
 const listWhite = [
     'http://localhost:3000',  // Frontend en desarrollo
     'https://surprise1-2.vercel.app', // Frontend correcto en producción
-    
 ];
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // Permitir solicitudes sin origen (por ejemplo, herramientas como Postman)
-        if (!origin) {
-            return callback(null, true);
-        }
-        if (listWhite.includes(origin)) {
-            callback(null, true); // Permitir el origen si está en la lista blanca
+        // Permitir solicitudes sin origen (como Postman)
+        if (!origin) return callback(null, true);
+        if (listWhite.indexOf(origin) !== -1) {
+            callback(null, true);
         } else {
-            console.error(`CORS bloqueado para origen: ${origin}`); // Agregar mensaje de depuración
             callback(new Error('No permitido por CORS'));
         }
-    }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token','x-access-notification'],
 };
+
 
 
 
@@ -46,6 +47,7 @@ app.use('/api/auth', user);
 app.use('/api/docs', politicas);
 app.use('/api/docs', terminos);
 app.use('/api/docs', deslinde);
+app.use('/api/logo', logoRoutes);
 
 
 app.get('/', (req, res) => {

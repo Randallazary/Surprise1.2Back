@@ -4,10 +4,10 @@ import net from 'net';
 
 // URI de MongoDB Atlas (Producción)
 // URI de MongoDB Atlas (Producción) cambiando la base de datos a 'Refaccionaria'
-const atlasURI = 'mongodb+srv://randyrubio06:tacodepastor1@dbsurprise.u639y.mongodb.net/dbSurprise';
+const atlasURI = 'mongodb+srv://randyrubio06:tacodepastor1@dbsurprise.u639y.mongodb.net/dbSurprise?retryWrites=true&w=majority';
 
 
-// URI local para la base de datos 'Refaccionaria'
+// URI local para la base de datos 'Refaccionaria'  
 const localURI = 'mongodb://localhost:27017/surpriseDB';
 
 // Función para conectar a MongoDB con reintento automático
