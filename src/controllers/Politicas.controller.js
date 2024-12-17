@@ -53,11 +53,14 @@ export const createPrivacyPolicy = async (req, res) => {
           });
       } 
 
+      // Si la fecha de vigencia es correcta, sumamos un día a la fecha
+      effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
+
       // Crear una nueva política de privacidad
       const newPolicy = new PrivacyPolicy({
           title,
           content,
-          effectiveDate,
+          effectiveDate: effectiveDateObj, // Usar la fecha modificada
           isCurrent: false, // Por defecto, no es actual
       });
 
