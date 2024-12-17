@@ -40,10 +40,11 @@ export const createPrivacyPolicy = async (req, res) => {
       }
 
       if (new Date(effectiveDate) <= new Date()) {
-          return res.status(400).json({
-              message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
-          });
-      }
+        return res.status(400).json({
+            message: "La fecha de vigencia no puede ser menor o igual a la fecha actual.",
+        });
+    }
+    
 
       // Crear una nueva política de privacidad
       const newPolicy = new PrivacyPolicy({
