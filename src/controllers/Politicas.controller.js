@@ -39,11 +39,7 @@ export const createPrivacyPolicy = async (req, res) => {
           });
       }
 
-      // Validar que la fecha de vigencia no sea anterior a un día antes de la fecha actual
-      const today = new Date();
-      today.setDate(today.getDate() - 1); // Restar un día
-
-      if (new Date(effectiveDate) < today) {
+      if (new Date(effectiveDate) < new Date()) {
           return res.status(400).json({
               message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
           });
