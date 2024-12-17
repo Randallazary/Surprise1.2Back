@@ -43,14 +43,22 @@ export const createTerms = async (req, res) => {
 
         // Validar que la fecha de vigencia no sea anterior a la fecha actual
         const currentDate = new Date();
+        
+        // Ajustamos la hora de las fechas a las 00:00:00 para comparar solo la fecha
+        currentDate.setHours(0, 0, 0, 0);
+        effectiveDateObj.setHours(0, 0, 0, 0);
+
+        // Si la fecha de vigencia es anterior a la actual, retornamos error
         if (effectiveDateObj < currentDate) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
             });
         }
 
-        // Sumar un día a la fecha de vigencia
-        effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
+        // Si la fecha de vigencia es el mismo día, sumamos un día a la fecha
+        if (effectiveDateObj.getTime() === currentDate.getTime()) {
+            effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
+        }
 
         // Crear el documento con la fecha modificada
         const newTerms = new Terms({
@@ -71,6 +79,7 @@ export const createTerms = async (req, res) => {
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };
+
 
 
 
