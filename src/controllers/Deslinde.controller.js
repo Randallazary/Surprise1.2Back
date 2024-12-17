@@ -49,11 +49,15 @@ export const createDeslinde = async (req, res) => {
             });
         }
 
-        // Crear un nuevo deslinde
+        // Sumar un día a la fecha de vigencia
+        const effectiveDateObj = new Date(effectiveDate);
+        effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
+
+        // Crear un nuevo deslinde con la fecha modificada
         const newDeslinde = new Deslinde({
             title,
             content,
-            effectiveDate,
+            effectiveDate: effectiveDateObj, // Usar la fecha modificada
             isCurrent: false, // Por defecto, no es actual
         });
 

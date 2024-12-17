@@ -5,52 +5,73 @@ import sanitizeHtml from 'sanitize-html';
 export const createTerms = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
-      // Sanitizar los campos para prevenir scripts maliciosos
-      title = sanitizeHtml(title, {
-          allowedTags: [], // No permitir etiquetas HTML
-          allowedAttributes: {}, // No permitir atributos
-      });
 
-      content = sanitizeHtml(content, {
-          allowedTags: ["b", "i", "u"], // Permitir solo etiquetas básicas
-          allowedAttributes: {}, // No permitir atributos
-      });
+        // Sanitizar los campos para prevenir scripts maliciosos
+        title = sanitizeHtml(title, {
+            allowedTags: [], // No permitir etiquetas HTML
+            allowedAttributes: {}, // No permitir atributos
+        });
 
-      // Validar si hay etiquetas <script> o atributos de eventos
-      const hasScriptTags = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-      const hasEventAttributes = /on\w+="[^"]*"/gi;
+        content = sanitizeHtml(content, {
+            allowedTags: ["b", "i", "u"], // Permitir solo etiquetas básicas
+            allowedAttributes: {}, // No permitir atributos
+        });
 
-      if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
-          return res.status(400).json({
-              message: "No se permiten scripts en los campos de texto.",
-          });
-      }
+        // Validar si hay etiquetas <script> o atributos de eventos
+        const hasScriptTags = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+        const hasEventAttributes = /on\w+="[^"]*"/gi;
 
-      if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
-          return res.status(400).json({
-              message: "No se permiten atributos de eventos en los campos de texto.",
-          });
-      }
+        if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
+            return res.status(400).json({
+                message: "No se permiten scripts en los campos de texto.",
+            });
+        }
+
+        if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
+            return res.status(400).json({
+                message: "No se permiten atributos de eventos en los campos de texto.",
+            });
+        }
+
         // Validar campos requeridos
         if (!title || !content || !effectiveDate) {
             return res.status(400).json({ message: "Por favor revisar los campos." });
         }
 
-        if (new Date(effectiveDate) < new Date()) {
+        // Convertir effectiveDate a objeto Date
+        const effectiveDateObj = new Date(effectiveDate);
+
+        // Validar que la fecha de vigencia no sea anterior a la fecha actual
+        const currentDate = new Date();
+        if (effectiveDateObj < currentDate) {
             return res.status(400).json({
-                message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
+                message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
             });
         }
-        // Crear el documento
-        const newTerms = new Terms({ title, content, effectiveDate, isCurrent: false });
+
+        // Sumar un día a la fecha de vigencia
+        effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
+
+        // Crear el documento con la fecha modificada
+        const newTerms = new Terms({
+            title,
+            content,
+            effectiveDate: effectiveDateObj, // Usar la fecha modificada
+            isCurrent: false,
+        });
+
         await newTerms.save();
 
-        return res.status(201).json({ message: "Términos creados exitosamente", terms: newTerms });
+        return res.status(201).json({
+            message: "Términos creados exitosamente",
+            terms: newTerms,
+        });
     } catch (error) {
         console.error("Error al crear términos y condiciones:", error);
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };
+
 
 // Obtener los términos actuales
 export const getCurrentTerms = async (req, res) => {
