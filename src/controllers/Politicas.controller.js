@@ -38,16 +38,27 @@ export const createPrivacyPolicy = async (req, res) => {
               message: "Por favor revisar los campos.",
           });
       }
-      if (new Date(effectiveDate) == new Date()) {
-        return res.status(400).json({
-            message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
-        });
-    }
-      if (new Date(effectiveDate) < new Date()) {
+      const currentDate = new Date();
+      const effectiveDateObj = new Date(effectiveDate);
+      
+      // Eliminar las horas, minutos, segundos y milisegundos para comparar solo por día, mes y año
+      currentDate.setHours(0, 0, 0, 0);
+      effectiveDateObj.setHours(0, 0, 0, 0);
+      
+      // Comparar si la fecha de vigencia es anterior a la fecha actual
+      if (effectiveDateObj < currentDate) {
+          // Si la fecha de vigencia es anterior, lanzar el mensaje de error
           return res.status(400).json({
               message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
           });
+      } else {
+          // Si la fecha de vigencia no es anterior, comparar si es igual a la fecha actual
+          if (effectiveDateObj.getTime() === currentDate.getTime()) {
+              // Si las fechas son iguales, no hacer nada (dejar pasar)
+              return;
+          }
       }
+      
 
       // Crear una nueva política de privacidad
       const newPolicy = new PrivacyPolicy({
