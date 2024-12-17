@@ -37,7 +37,7 @@ export const createTerms = async (req, res) => {
         }
 
         const today = new Date();
-        today.setDate(today.getDate() - 1); // Restar un día
+        today.setDate(today.getDate() ); // Restar un día
         
         if (new Date(effectiveDate) < today) {
             return res.status(400).json({
