@@ -25,11 +25,12 @@ export const createDeslinde = async (req, res) => {
         }
 
         // Validar que la fecha de vigencia no sea anterior a la fecha actual
-        if (new Date(effectiveDate) < new Date()) {
+        if (new Date(effectiveDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
             });
         }
+        
 
         // Crear un nuevo deslinde
         const newDeslinde = new Deslinde({

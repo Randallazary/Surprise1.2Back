@@ -15,9 +15,10 @@ export const createTerms = async (req, res) => {
             return res.status(400).json({ message: "Todos los campos son requeridos." });
         }
 
-        // Validar fecha de vigencia
-        if (new Date(effectiveDate) < new Date()) {
-            return res.status(400).json({ message: "La fecha de vigencia no puede ser anterior a la fecha actual." });
+        if (new Date(effectiveDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)) {
+            return res.status(400).json({
+                message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
+            });
         }
 
         // Crear el documento
