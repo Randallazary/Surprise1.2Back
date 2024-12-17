@@ -1,6 +1,5 @@
 import PrivacyPolicy from '../models/Politicas.model.js';
 import sanitizeHtml from 'sanitize-html';
-// Crear una nueva política de privacidad
 export const createPrivacyPolicy = async (req, res) => {
   try {
       let { title, content, effectiveDate } = req.body;
@@ -38,27 +37,21 @@ export const createPrivacyPolicy = async (req, res) => {
               message: "Por favor revisar los campos.",
           });
       }
+
       const currentDate = new Date();
       const effectiveDateObj = new Date(effectiveDate);
       
-      // Eliminar las horas, minutos, segundos y milisegundos para comparar solo por día, mes y año
-      currentDate.setHours(0, 0, 0, 0);
-      effectiveDateObj.setHours(0, 0, 0, 0);
-      
+      // Comparar solo año, mes y día, sin tener en cuenta la hora, minutos y segundos
+      const currentDateStr = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+      const effectiveDateStr = effectiveDateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+
       // Comparar si la fecha de vigencia es anterior a la fecha actual
-      if (effectiveDateObj < currentDate) {
+      if (effectiveDateStr < currentDateStr) {
           // Si la fecha de vigencia es anterior, lanzar el mensaje de error
           return res.status(400).json({
               message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
           });
-      } else {
-          // Si la fecha de vigencia no es anterior, comparar si es igual a la fecha actual
-          if (effectiveDateObj.getTime() === currentDate.getTime()) {
-              // Si las fechas son iguales, no hacer nada (dejar pasar)
-              return;
-          }
-      }
-      
+      } 
 
       // Crear una nueva política de privacidad
       const newPolicy = new PrivacyPolicy({
@@ -78,6 +71,7 @@ export const createPrivacyPolicy = async (req, res) => {
       res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
 
 
 // Obtener la política de privacidad actual
