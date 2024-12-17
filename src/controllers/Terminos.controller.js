@@ -73,6 +73,7 @@ export const createTerms = async (req, res) => {
 };
 
 
+
 // Obtener los términos actuales
 export const getCurrentTerms = async (req, res) => {
     try {
