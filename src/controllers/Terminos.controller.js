@@ -36,10 +36,7 @@ export const createTerms = async (req, res) => {
             return res.status(400).json({ message: "Por favor revisar los campos." });
         }
 
-        const today = new Date();
-        today.setDate(today.getDate() ); // Restar un día
-        
-        if (new Date(effectiveDate) < today) {
+        if (new Date(effectiveDate) < new Date()) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
             });
