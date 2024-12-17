@@ -1,36 +1,53 @@
 import Deslinde from '../models/Deslinde.model.js';
 import sanitizeHtml from 'sanitize-html';
 
-// Crear un nuevo deslinde
 export const createDeslinde = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
 
         // Sanitizar los campos para prevenir scripts maliciosos
         title = sanitizeHtml(title, {
-            allowedTags: [],
-            allowedAttributes: {},
+            allowedTags: [], // No permitir etiquetas HTML
+            allowedAttributes: {}, // No permitir atributos
         });
 
         content = sanitizeHtml(content, {
-            allowedTags: ["b", "i", "u"],
-            allowedAttributes: {},
+            allowedTags: ["b", "i", "u"], // Permitir solo etiquetas básicas
+            allowedAttributes: {}, // No permitir atributos
         });
+
+        // Validar si hay etiquetas <script> o atributos de eventos
+        const hasScriptTags = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+        const hasEventAttributes = /on\w+="[^"]*"/gi;
+
+        if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
+            return res.status(400).json({
+                message: "No se permiten scripts en los campos de texto.",
+            });
+        }
+
+        if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
+            return res.status(400).json({
+                message: "No se permiten atributos de eventos en los campos de texto.",
+            });
+        }
 
         // Validar campos requeridos
         if (!title || !content || !effectiveDate) {
             return res.status(400).json({
-                message: "Todos los campos son requeridos, revise su solicitud.",
+                message: "Por favor revisar los campos.",
             });
         }
 
-        // Validar que la fecha de vigencia no sea anterior a la fecha actual
-        if (new Date(effectiveDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)) {
+        // Validar que la fecha de vigencia no sea anterior a un día antes de la fecha actual
+        const today = new Date();
+        today.setDate(today.getDate() - 1); // Restar un día
+
+        if (new Date(effectiveDate) < today) {
             return res.status(400).json({
-                message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
+                message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
             });
         }
-        
 
         // Crear un nuevo deslinde
         const newDeslinde = new Deslinde({
@@ -50,6 +67,7 @@ export const createDeslinde = async (req, res) => {
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };
+
 
 // Obtener el deslinde actual
 export const getCurrentDeslinde = async (req, res) => {

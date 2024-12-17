@@ -2,52 +2,72 @@ import PrivacyPolicy from '../models/Politicas.model.js';
 import sanitizeHtml from 'sanitize-html';
 // Crear una nueva política de privacidad
 export const createPrivacyPolicy = async (req, res) => {
-    try {
-        let { title, content, effectiveDate } = req.body;
+  try {
+      let { title, content, effectiveDate } = req.body;
 
-        // Sanitizar los campos para prevenir scripts maliciosos
-        title = sanitizeHtml(title, {
-            allowedTags: [], // No se permiten etiquetas HTML
-            allowedAttributes: {}, // No se permiten atributos
-        });
+      // Sanitizar los campos para prevenir scripts maliciosos
+      title = sanitizeHtml(title, {
+          allowedTags: [], // No permitir etiquetas HTML
+          allowedAttributes: {}, // No permitir atributos
+      });
 
-        content = sanitizeHtml(content, {
-            allowedTags: ["b", "i", "u"], // Permite solo etiquetas básicas si es necesario
-            allowedAttributes: {}, // No se permiten atributos
-        });
+      content = sanitizeHtml(content, {
+          allowedTags: ["b", "i", "u"], // Permitir solo etiquetas básicas
+          allowedAttributes: {}, // No permitir atributos
+      });
 
-        // Validar campos requeridos
-        if (!title || !content || !effectiveDate) {
-            return res.status(400).json({
-                message: "Todos los campos son requeridos, revise su solicitud.",
-            });
-        }
+      // Validar si hay etiquetas <script> o atributos de eventos
+      const hasScriptTags = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+      const hasEventAttributes = /on\w+="[^"]*"/gi;
 
-        // Validar que la fecha de vigencia no sea anterior a la fecha actual
-        if (new Date(effectiveDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)) {
+      if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
           return res.status(400).json({
-              message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
+              message: "No se permiten scripts en los campos de texto.",
           });
       }
 
-        // Crear una nueva política
-        const newPolicy = new PrivacyPolicy({
-            title,
-            content,
-            effectiveDate,
-            isCurrent: false, // Por defecto, no es actual
-        });
+      if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
+          return res.status(400).json({
+              message: "No se permiten atributos de eventos en los campos de texto.",
+          });
+      }
 
-        await newPolicy.save();
-        return res.status(201).json({
-            message: "Política de privacidad creada exitosamente",
-            policy: newPolicy,
-        });
-    } catch (error) {
-        console.error("Error al crear la política de privacidad:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
-    }
+      // Validar campos requeridos
+      if (!title || !content || !effectiveDate) {
+          return res.status(400).json({
+              message: "Por favor revisar los campos.",
+          });
+      }
+
+      // Validar que la fecha de vigencia no sea anterior a un día antes de la fecha actual
+      const today = new Date();
+      today.setDate(today.getDate() - 1); // Restar un día
+
+      if (new Date(effectiveDate) < today) {
+          return res.status(400).json({
+              message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
+          });
+      }
+
+      // Crear una nueva política de privacidad
+      const newPolicy = new PrivacyPolicy({
+          title,
+          content,
+          effectiveDate,
+          isCurrent: false, // Por defecto, no es actual
+      });
+
+      await newPolicy.save();
+      return res.status(201).json({
+          message: "Política de privacidad creada exitosamente",
+          policy: newPolicy,
+      });
+  } catch (error) {
+      console.error("Error al crear la política de privacidad:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+  }
 };
+
 
 // Obtener la política de privacidad actual
 export const getCurrentPrivacyPolicy = async (req, res) => {
