@@ -55,6 +55,7 @@ export const createTerms = async (req, res) => {
         if (effectiveDateInMillis < currentDateInMillis - 86400000) { // 86400000 ms = 1 día
             // Si la fecha es anterior a un día antes, ajustamos la fecha a hoy
             effectiveDateObj.setTime(currentDateInMillis);
+            effectiveDateObj.setDate(effectiveDateObj.getDate() + 1);
         }
 
         // Verificar que la fecha de vigencia no sea anterior a hoy (si fue ajustada)
