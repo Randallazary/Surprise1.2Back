@@ -32,58 +32,64 @@ export const createDeslinde = async (req, res) => {
                       message: "Todos los campos son requeridos, revise su solicitud.",
                   });
               }
-
-        if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
-            return res.status(400).json({
-                message: "No se permiten scripts en los campos de texto.",
+              if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
+                return res.status(400).json({
+                    message: "No se permiten scripts en los campos de texto.",
+                });
+            }
+    
+            if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
+                return res.status(400).json({
+                    message: "No se permiten atributos de eventos en los campos de texto.",
+                });
+            }
+    
+            // Validar campos requeridos
+            if (!title || !content || !effectiveDate) {
+                return res.status(400).json({ message: "Por favor revisar los campos." });
+            }
+    
+            // Convertir effectiveDate a objeto Date
+            const effectiveDateObj = new Date(effectiveDate);
+    
+            // Validar que la fecha de vigencia no sea anterior a la fecha actual
+            const currentDate = new Date();
+            
+            // Ajustamos la hora de las fechas a las 00:00:00 para comparar solo la fecha
+            currentDate.setHours(0, 0, 0, 0);
+            effectiveDateObj.setHours(0, 0, 0, 0);
+    
+            // Si la fecha de vigencia es anterior a la actual, retornamos error
+            if (effectiveDateObj < currentDate) {
+                return res.status(400).json({
+                    message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
+                });
+            }
+    
+            // Si la fecha de vigencia es el mismo día, sumamos un día a la fecha
+            if (effectiveDateObj.getTime() === currentDate.getTime()) {
+                effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
+            }
+    
+            // Crear el documento con la fecha modificada
+            const newTerms = new Terms({
+                title,
+                content,
+                effectiveDate: effectiveDateObj, // Usar la fecha modificada
+                isCurrent: false,
             });
-        }
-
-        if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
-            return res.status(400).json({
-                message: "No se permiten atributos de eventos en los campos de texto.",
+    
+            await newTerms.save();
+    
+            return res.status(201).json({
+                message: "Términos creados exitosamente",
+                terms: newTerms,
             });
+        } catch (error) {
+            console.error("Error al crear términos y condiciones:", error);
+            res.status(500).json({ message: "Error interno del servidor" });
         }
-
-        // Validar campos requeridos
-        if (!title || !content || !effectiveDate) {
-            return res.status(400).json({
-                message: "Por favor revisar los campos.",
-            });
-        }
-
-        // Validar que la fecha de vigencia no sea anterior a un día antes de la fecha actual
-        const today = new Date();
-        today.setDate(today.getDate() - 1); // Restar un día
-
-        if (new Date(effectiveDate) < today) {
-            return res.status(400).json({
-                message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
-            });
-        }
-
-        // Sumar un día a la fecha de vigencia
-        const effectiveDateObj = new Date(effectiveDate);
-        effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
-
-        // Crear un nuevo deslinde con la fecha modificada
-        const newDeslinde = new Deslinde({
-            title,
-            content,
-            effectiveDate: effectiveDateObj, // Usar la fecha modificada
-            isCurrent: false, // Por defecto, no es actual
-        });
-
-        await newDeslinde.save();
-        return res.status(201).json({
-            message: "Deslinde creado exitosamente",
-            deslinde: newDeslinde,
-        });
-    } catch (error) {
-        console.error("Error al crear el deslinde:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
-    }
-};
+    };
 
 
 // Obtener el deslinde actual
