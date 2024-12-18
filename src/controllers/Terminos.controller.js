@@ -2,7 +2,6 @@ import Terms from '../models/Terminos.model.js';
 import sanitizeHtml from 'sanitize-html';
 
 // Crear un nuevo documento de términos y condiciones
-// Crear un nuevo documento de términos y condiciones
 export const createTerms = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
@@ -19,13 +18,13 @@ export const createTerms = async (req, res) => {
 
         // Sanitizar los campos (remover cualquier etiqueta restante)
         title = sanitizeHtml(title, {
-            allowedTags: [], // No se permiten etiquetas HTML
-            allowedAttributes: {}, // No se permiten atributos
+            allowedTags: [],
+            allowedAttributes: {},
         });
 
         content = sanitizeHtml(content, {
-            allowedTags: [], // No se permiten etiquetas HTML
-            allowedAttributes: {}, // No se permiten atributos
+            allowedTags: [],
+            allowedAttributes: {},
         });
 
         // Validar campos requeridos
@@ -35,51 +34,33 @@ export const createTerms = async (req, res) => {
             });
         }
 
-        if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
-            return res.status(400).json({
-                message: "No se permiten scripts en los campos de texto.",
-            });
-        }
-
-        if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
-            return res.status(400).json({
-                message: "No se permiten atributos de eventos en los campos de texto.",
-            });
-        }
-        // Validar campos requeridos
-        if (!title || !content || !effectiveDate) {
-            return res.status(400).json({
-                message: "Por favor revisar los campos.",
-            });
-        }
-
-        // Convertir effectiveDate a objeto Date
+        // Validar la fecha de vigencia
         const effectiveDateObj = new Date(effectiveDate);
+        if (isNaN(effectiveDateObj)) {
+            return res.status(400).json({
+                message: "La fecha de vigencia es inválida.",
+            });
+        }
 
-        // Validar que la fecha de vigencia no sea anterior a la fecha actual
         const currentDate = new Date();
-
-        // Ajustamos la hora de las fechas a las 00:00:00 para comparar solo la fecha
         currentDate.setHours(0, 0, 0, 0);
         effectiveDateObj.setHours(0, 0, 0, 0);
 
-        // Si la fecha de vigencia es anterior a la actual, retornamos error
         if (effectiveDateObj < currentDate) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
             });
         }
 
-        // Si la fecha de vigencia es el mismo día, sumamos un día a la fecha
         if (effectiveDateObj.getTime() === currentDate.getTime()) {
-            effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
+            effectiveDateObj.setDate(effectiveDateObj.getDate() + 1);
         }
 
         // Crear el documento con la fecha modificada
         const newTerms = new Terms({
             title,
             content,
-            effectiveDate: effectiveDateObj, // Usar la fecha modificada
+            effectiveDate: effectiveDateObj,
             isCurrent: false,
         });
 
@@ -94,7 +75,6 @@ export const createTerms = async (req, res) => {
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };
-
 
 // Obtener los términos actuales
 export const getCurrentTerms = async (req, res) => {
@@ -129,15 +109,17 @@ export const updateTerms = async (req, res) => {
         const { id } = req.params;
         const { title, content, effectiveDate } = req.body;
 
+        // Validar si el término existe
+        const termExists = await Terms.findById(id);
+        if (!termExists) {
+            return res.status(404).json({ message: "No se encontraron términos para actualizar" });
+        }
+
         const updatedTerms = await Terms.findByIdAndUpdate(
             id,
             { title, content, effectiveDate },
             { new: true }
         );
-
-        if (!updatedTerms) {
-            return res.status(404).json({ message: "No se encontraron términos para actualizar" });
-        }
 
         res.status(200).json({ message: "Términos actualizados exitosamente", terms: updatedTerms });
     } catch (error) {
@@ -158,7 +140,6 @@ export const deleteTerms = async (req, res) => {
 
         await Terms.findByIdAndDelete(id);
 
-        // Si los términos eliminados eran los actuales, establecer otro como actual
         if (termsToDelete.isCurrent) {
             const latestTerms = await Terms.findOne().sort({ createdAt: -1 });
             if (latestTerms) {
@@ -183,10 +164,8 @@ export const setAsCurrentTerms = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Desmarcar términos actuales
         await Terms.updateMany({ isCurrent: true }, { isCurrent: false });
 
-        // Marcar el nuevo término como actual
         const currentTerms = await Terms.findByIdAndUpdate(
             id,
             { isCurrent: true },
