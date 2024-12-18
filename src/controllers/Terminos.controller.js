@@ -1,4 +1,6 @@
 import moment from 'moment-timezone';
+import sanitizeHtml from 'sanitize-html';
+import Terms from '../models/Terminos.model.js';
 
 export const createTerms = async (req, res) => {
     try {
@@ -29,6 +31,13 @@ export const createTerms = async (req, res) => {
         if (!title || !content || !effectiveDate) {
             return res.status(400).json({
                 message: "Todos los campos son requeridos, revise su solicitud.",
+            });
+        }
+
+        // Verificar si la fecha recibida es válida
+        if (!moment(effectiveDate, moment.ISO_8601, true).isValid()) {
+            return res.status(400).json({
+                message: "La fecha de vigencia es inválida.",
             });
         }
 
