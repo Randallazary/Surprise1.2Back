@@ -1,7 +1,5 @@
-import Terms from '../models/Terminos.model.js';
-import sanitizeHtml from 'sanitize-html';
+import moment from 'moment-timezone';
 
-// Crear un nuevo documento de términos y condiciones
 export const createTerms = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
@@ -34,40 +32,25 @@ export const createTerms = async (req, res) => {
             });
         }
 
-        // Validar la fecha de vigencia
-        const effectiveDateObj = new Date(effectiveDate);
-        if (isNaN(effectiveDateObj)) {
-            return res.status(400).json({
-                message: "La fecha de vigencia es inválida.",
-            });
-        }
+        // Usar la zona horaria de Ciudad de México
+        const mexicoTime = moment.tz("America/Mexico_City");
 
-        // Obtener la fecha actual (sin hora)
-        const currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0); // Establece la hora a las 00:00 para comparar solo la fecha
-        const currentDateInMillis = currentDate.getTime();
-
-        // Obtener la fecha de vigencia como milisegundos (sin hora)
-        effectiveDateObj.setHours(0, 0, 0, 0);
-        const effectiveDateInMillis = effectiveDateObj.getTime();
+        // Validar la fecha de vigencia en la zona horaria de Ciudad de México
+        const effectiveDateObj = moment.tz(effectiveDate, "America/Mexico_City").startOf('day'); // Usamos `startOf('day')` para asegurarnos de que sea solo la fecha sin la hora
+        const currentDateObj = mexicoTime.startOf('day'); // Fecha de hoy en la zona horaria de México
 
         // Verificar que la fecha de vigencia no sea anterior a hoy
-        if (effectiveDateInMillis < currentDateInMillis) {
+        if (effectiveDateObj.isBefore(currentDateObj)) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior a hoy.",
             });
-        }
-
-        // Si la fecha de vigencia es válida, asignamos la fecha de hoy
-        if (effectiveDateInMillis === currentDateInMillis) {
-            effectiveDateObj.setHours(0, 0, 0, 0); // Aseguramos que la fecha sea exactamente hoy
         }
 
         // Crear el documento con la fecha ingresada
         const newTerms = new Terms({
             title,
             content,
-            effectiveDate: effectiveDateObj,
+            effectiveDate: effectiveDateObj.toDate(), // Convertimos el momento a un objeto Date
             isCurrent: false,
         });
 
