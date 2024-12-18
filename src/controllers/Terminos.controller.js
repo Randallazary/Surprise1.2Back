@@ -13,7 +13,7 @@ export const createTerms = async (req, res) => {
         });
 
         content = sanitizeHtml(content, {
-           
+            allowedTags: [], // No se permiten etiquetas HTML
             allowedAttributes: {}, // No permitir atributos
         });
 

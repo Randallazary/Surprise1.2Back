@@ -12,7 +12,7 @@ export const createDeslinde = async (req, res) => {
         });
 
         content = sanitizeHtml(content, {
-           
+            allowedTags: [], // No se permiten etiquetas HTML
             allowedAttributes: {}, // No permitir atributos
         });
 
@@ -39,27 +39,33 @@ export const createDeslinde = async (req, res) => {
             });
         }
 
-        
+        // Validar que la fecha de vigencia no sea anterior a un día antes de la fecha actual
+        const today = new Date();
+        today.setDate(today.getDate() - 1); // Restar un día
 
-if (effectiveDate < new Date()) {
-    return res.status(400).json({
-        message: "La fecha de vigencia no puede ser menor a la fecha actual.",
-    });
-}
+        if (new Date(effectiveDate) < today) {
+            return res.status(400).json({
+                message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
+            });
+        }
 
-// Crear un nuevo deslinde
-const newDeslinde = new Deslinde({
-    title,
-    content,
-    effectiveDate, // Guardar la fecha sin modificaciones
-    isCurrent: false, // Por defecto, no es actual
-});
+        // Sumar un día a la fecha de vigencia
+        const effectiveDateObj = new Date(effectiveDate);
+        effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
 
-await newDeslinde.save();
-return res.status(201).json({
-    message: "Deslinde creado exitosamente",
-    deslinde: newDeslinde,
-});
+        // Crear un nuevo deslinde con la fecha modificada
+        const newDeslinde = new Deslinde({
+            title,
+            content,
+            effectiveDate: effectiveDateObj, // Usar la fecha modificada
+            isCurrent: false, // Por defecto, no es actual
+        });
+
+        await newDeslinde.save();
+        return res.status(201).json({
+            message: "Deslinde creado exitosamente",
+            deslinde: newDeslinde,
+        });
     } catch (error) {
         console.error("Error al crear el deslinde:", error);
         res.status(500).json({ message: "Error interno del servidor" });
