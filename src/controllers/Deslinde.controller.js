@@ -7,13 +7,19 @@ export const createDeslinde = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
 
-        // Validar si los campos contienen etiquetas prohibidas como <b>, <i>, <u>
-        const forbiddenTags = ["b", "i", "u"];
+        const forbiddenTags = [
+            "b", "i", "u", "h1", "h2", "h3", "h4", "h5", "h6", 
+            "center", "hr", "p", "br", "pre", "sub", "img", 
+            "script", "iframe", "embed", "object", "link", "style"
+        ];
+        
+        // Expresión regular para detectar las etiquetas prohibidas en el contenido
         const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
 
+        // Validar si el título o el contenido contienen etiquetas prohibidas
         if (tagRegex.test(title) || tagRegex.test(content)) {
             return res.status(400).json({
-                message: "El uso de etiquetas HTML como <b>, <i> o <u> no está permitido.",
+                message: "El uso de etiquetas HTML como <b>, <i>, <h1>, <center>, <hr>, <p>, <br>, <pre>, <sub>, etc. no está permitido.",
             });
         }
 
