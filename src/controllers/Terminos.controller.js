@@ -52,11 +52,7 @@ export const createTerms = async (req, res) => {
             });
         }
 
-        if (effectiveDateObj.getTime() === currentDate.getTime()) {
-            effectiveDateObj.setDate(effectiveDateObj.getDate() + 1);
-        }
-
-        // Crear el documento con la fecha modificada
+        // Crear el documento con la fecha ingresada
         const newTerms = new Terms({
             title,
             content,
