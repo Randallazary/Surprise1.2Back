@@ -52,9 +52,9 @@ export const createTerms = async (req, res) => {
         const effectiveDateInMillis = effectiveDateObj.getTime();
 
         // Permitir que se pueda poner una fecha un día antes
-        if (effectiveDateInMillis < currentDateInMillis - 86400000) { // 86400000 ms = 1 día
+        if (effectiveDateInMillis < currentDateInMillis ) { // 86400000 ms = 1 día
             // Si la fecha es anterior a un día antes, ajustamos la fecha a hoy
-            effectiveDateObj.setTime(currentDateInMillis);
+            
             effectiveDateObj.setDate(effectiveDateObj.getDate() + 1);
         }
 
