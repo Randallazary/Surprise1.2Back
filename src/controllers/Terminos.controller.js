@@ -98,7 +98,7 @@ export const getCurrentTerms = async (req, res) => {
 // Obtener todos los términos
 export const getAllTerms = async (req, res) => {
     try {
-        const terms = await Terms.find().sort({ createdAt: -1 });
+        const terms = await Terms.find().sort({ createdAt: -0 });
         res.status(200).json(terms);
     } catch (error) {
         console.error("Error al obtener todos los términos:", error);
