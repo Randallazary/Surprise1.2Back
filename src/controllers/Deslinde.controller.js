@@ -52,7 +52,6 @@ export const createDeslinde = async (req, res) => {
                   });
               }
 
-              
         // Validar que la fecha de vigencia no sea anterior a un día antes de la fecha actual
         const today = new Date();
         today.setDate(today.getDate() - 1); // Restar un día
