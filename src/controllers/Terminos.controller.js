@@ -47,7 +47,7 @@ export const createTerms = async (req, res) => {
         currentDate.setHours(0, 0, 0, 0); // Establece la hora a las 00:00 para comparación sin tener en cuenta las horas
 
         const yesterdayDate = new Date(currentDate);
-        yesterdayDate.setDate(currentDate.getDate() - 1); // Ajusta la fecha de ayer
+        yesterdayDate.setDate(currentDate.getDate() - 0); // Ajusta la fecha de ayer
 
         effectiveDateObj.setHours(0, 0, 0, 0); // Establece la hora de la fecha de vigencia a las 00:00
 
@@ -98,7 +98,7 @@ export const getCurrentTerms = async (req, res) => {
 // Obtener todos los términos
 export const getAllTerms = async (req, res) => {
     try {
-        const terms = await Terms.find().sort({ createdAt: -0 });
+        const terms = await Terms.find().sort({ createdAt: -1 });
         res.status(200).json(terms);
     } catch (error) {
         console.error("Error al obtener todos los términos:", error);
