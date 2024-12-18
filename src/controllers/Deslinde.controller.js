@@ -1,5 +1,6 @@
 import Deslinde from '../models/Deslinde.model.js';
 import sanitizeHtml from 'sanitize-html';
+import moment from 'moment-timezone';
 
 // Crear un nuevo deslinde
 export const createDeslinde = async (req, res) => {
@@ -34,19 +35,22 @@ export const createDeslinde = async (req, res) => {
             });
         }
 
-        // Validar la fecha de vigencia
-        const effectiveDateObj = new Date(effectiveDate);
-        if (isNaN(effectiveDateObj)) {
+        // Verificar si la fecha recibida es válida
+        if (!moment(effectiveDate, moment.ISO_8601, true).isValid()) {
             return res.status(400).json({
                 message: "La fecha de vigencia es inválida.",
             });
         }
 
-        const currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0);
-        effectiveDateObj.setHours(0, 0, 0, 0);
+        // Usar la zona horaria de Ciudad de México
+        const mexicoTime = moment.tz("America/Mexico_City");
 
-        if (effectiveDateObj < currentDate) {
+        // Validar la fecha de vigencia en la zona horaria de Ciudad de México
+        const effectiveDateObj = moment.tz(effectiveDate, "America/Mexico_City").startOf('day'); // Usamos `startOf('day')` para asegurarnos de que sea solo la fecha sin la hora
+        const currentDateObj = mexicoTime.startOf('day'); // Fecha de hoy en la zona horaria de México
+
+        // Verificar que la fecha de vigencia no sea anterior a hoy
+        if (effectiveDateObj.isBefore(currentDateObj)) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
             });
@@ -56,7 +60,7 @@ export const createDeslinde = async (req, res) => {
         const newDeslinde = new Deslinde({
             title,
             content,
-            effectiveDate: effectiveDateObj,
+            effectiveDate: effectiveDateObj.toDate(),
             isCurrent: false,
         });
 
