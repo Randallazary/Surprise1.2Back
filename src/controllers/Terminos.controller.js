@@ -42,12 +42,12 @@ export const createTerms = async (req, res) => {
             });
         }
 
-        // Obtener la fecha actual como milisegundos (sin horas, minutos, segundos)
+        // Obtener la fecha actual (sin hora)
         const currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0); // Establece la hora a las 00:00 para comparación sin tener en cuenta las horas
+        currentDate.setHours(0, 0, 0, 0); // Establece la hora a las 00:00 para comparar solo la fecha
         const currentDateInMillis = currentDate.getTime();
 
-        // Obtener la fecha de vigencia como milisegundos
+        // Obtener la fecha de vigencia como milisegundos (sin hora)
         effectiveDateObj.setHours(0, 0, 0, 0);
         const effectiveDateInMillis = effectiveDateObj.getTime();
 
