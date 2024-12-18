@@ -2,37 +2,38 @@ import Terms from '../models/Terminos.model.js';
 import sanitizeHtml from 'sanitize-html';
 
 // Crear un nuevo documento de términos y condiciones
+// Crear un nuevo documento de términos y condiciones
 export const createTerms = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
 
-       // Validar si los campos contienen etiquetas prohibidas como <b>, <i>, <u>
-            const forbiddenTags = ["b", "i", "u"];
-            const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
-      
-            if (tagRegex.test(title) || tagRegex.test(content)) {
-                return res.status(400).json({
-                    message: "El uso de etiquetas HTML como <b>, <i> o <u> no está permitido.",
-                });
-            }
-      
-            // Sanitizar los campos (remover cualquier etiqueta restante)
-            title = sanitizeHtml(title, {
-                allowedTags: [], // No se permiten etiquetas HTML
-                allowedAttributes: {}, // No se permiten atributos
+        // Validar si los campos contienen etiquetas prohibidas como <b>, <i>, <u>
+        const forbiddenTags = ["b", "i", "u"];
+        const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
+
+        if (tagRegex.test(title) || tagRegex.test(content)) {
+            return res.status(400).json({
+                message: "El uso de etiquetas HTML como <b>, <i> o <u> no está permitido.",
             });
-      
-            content = sanitizeHtml(content, {
-                allowedTags: [], // No se permiten etiquetas HTML
-                allowedAttributes: {}, // No se permiten atributos
+        }
+
+        // Sanitizar los campos (remover cualquier etiqueta restante)
+        title = sanitizeHtml(title, {
+            allowedTags: [], // No se permiten etiquetas HTML
+            allowedAttributes: {}, // No se permiten atributos
+        });
+
+        content = sanitizeHtml(content, {
+            allowedTags: [], // No se permiten etiquetas HTML
+            allowedAttributes: {}, // No se permiten atributos
+        });
+
+        // Validar campos requeridos
+        if (!title || !content || !effectiveDate) {
+            return res.status(400).json({
+                message: "Todos los campos son requeridos, revise su solicitud.",
             });
-      
-            // Validar campos requeridos
-            if (!title || !content || !effectiveDate) {
-                return res.status(400).json({
-                    message: "Todos los campos son requeridos, revise su solicitud.",
-                });
-            }
+        }
 
         if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
             return res.status(400).json({
@@ -45,10 +46,11 @@ export const createTerms = async (req, res) => {
                 message: "No se permiten atributos de eventos en los campos de texto.",
             });
         }
-
         // Validar campos requeridos
         if (!title || !content || !effectiveDate) {
-            return res.status(400).json({ message: "Por favor revisar los campos." });
+            return res.status(400).json({
+                message: "Por favor revisar los campos.",
+            });
         }
 
         // Convertir effectiveDate a objeto Date
@@ -56,7 +58,7 @@ export const createTerms = async (req, res) => {
 
         // Validar que la fecha de vigencia no sea anterior a la fecha actual
         const currentDate = new Date();
-        
+
         // Ajustamos la hora de las fechas a las 00:00:00 para comparar solo la fecha
         currentDate.setHours(0, 0, 0, 0);
         effectiveDateObj.setHours(0, 0, 0, 0);
@@ -92,8 +94,6 @@ export const createTerms = async (req, res) => {
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };
-
-
 
 
 // Obtener los términos actuales
