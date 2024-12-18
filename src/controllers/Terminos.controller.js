@@ -42,13 +42,16 @@ export const createTerms = async (req, res) => {
             });
         }
 
+        // Ajustar la fecha de vigencia para permitir la fecha actual
         const currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0);
-        effectiveDateObj.setHours(0, 0, 0, 0);
+        currentDate.setHours(0, 0, 0, 0); // Establece la hora a las 00:00 para comparación sin tener en cuenta las horas
 
+        effectiveDateObj.setHours(0, 0, 0, 0); // Igualmente establecemos la hora de la fecha de vigencia a las 00:00
+
+        // Ya no validamos que la fecha de vigencia sea mayor que la actual, solo se valida que no sea inválida
         if (effectiveDateObj < currentDate) {
             return res.status(400).json({
-                message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
+                message: "La fecha de vigencia no puede ser anterior al día de hoy.",
             });
         }
 
