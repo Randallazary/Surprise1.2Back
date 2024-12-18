@@ -7,15 +7,21 @@ export const createPrivacyPolicy = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
 
-        // Validar si los campos contienen etiquetas prohibidas como <b>, <i>, <u>
-        const forbiddenTags = ["b", "i", "u"];
-        const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
+        const forbiddenTags = [
+          "b", "i", "u", "h1", "h2", "h3", "h4", "h5", "h6", 
+          "center", "hr", "p", "br", "pre", "sub", "img", 
+          "script", "iframe", "embed", "object", "link", "style"
+      ];
+      
+      // Expresión regular para detectar las etiquetas prohibidas en el contenido
+      const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
 
-        if (tagRegex.test(title) || tagRegex.test(content)) {
-            return res.status(400).json({
-                message: "El uso de etiquetas HTML como <b>, <i> o <u> no está permitido.",
-            });
-        }
+      // Validar si el título o el contenido contienen etiquetas prohibidas
+      if (tagRegex.test(title) || tagRegex.test(content)) {
+          return res.status(400).json({
+              message: "El uso de etiquetas HTML. no está permitido.",
+          });
+      }
 
         // Sanitizar los campos (remover cualquier etiqueta restante)
         title = sanitizeHtml(title, {

@@ -19,7 +19,7 @@ export const createDeslinde = async (req, res) => {
         // Validar si el título o el contenido contienen etiquetas prohibidas
         if (tagRegex.test(title) || tagRegex.test(content)) {
             return res.status(400).json({
-                message: "El uso de etiquetas HTML como <b>, <i>, <h1>, <center>, <hr>, <p>, <br>, <pre>, <sub>, etc. no está permitido.",
+                message: "El uso de etiquetas HTML. no está permitido.",
             });
         }
 
