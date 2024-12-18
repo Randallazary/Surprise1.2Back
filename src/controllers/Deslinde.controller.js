@@ -39,6 +39,7 @@ export const createDeslinde = async (req, res) => {
             });
         }
 
+        
 // Validar que la fecha de vigencia no sea menor a la fecha actual
 const today = new Date();
 today.setHours(0, 0, 0, 0); // Asegurarse de ignorar la hora en la comparación
