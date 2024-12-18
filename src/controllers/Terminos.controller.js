@@ -42,16 +42,19 @@ export const createTerms = async (req, res) => {
             });
         }
 
-        // Ajustar la fecha de vigencia para permitir la fecha actual
+        // Ajustar la fecha de vigencia y la fecha actual para hacer la comparación
         const currentDate = new Date();
         currentDate.setHours(0, 0, 0, 0); // Establece la hora a las 00:00 para comparación sin tener en cuenta las horas
 
-        effectiveDateObj.setHours(0, 0, 0, 0); // Igualmente establecemos la hora de la fecha de vigencia a las 00:00
+        const yesterdayDate = new Date(currentDate);
+        yesterdayDate.setDate(currentDate.getDate() - 1); // Ajusta la fecha de ayer
 
-        // Ya no validamos que la fecha de vigencia sea mayor que la actual, solo se valida que no sea inválida
-        if (effectiveDateObj <= currentDate) {
+        effectiveDateObj.setHours(0, 0, 0, 0); // Establece la hora de la fecha de vigencia a las 00:00
+
+        // Validar que la fecha de vigencia no sea anterior a ayer
+        if (effectiveDateObj < yesterdayDate) {
             return res.status(400).json({
-                message: "La fecha de vigencia no puede ser anterior al día de hoy.",
+                message: "La fecha de vigencia no puede ser anterior a ayer.",
             });
         }
 
@@ -74,6 +77,7 @@ export const createTerms = async (req, res) => {
         res.status(500).json({ message: "Error interno del servidor" });
     }
 };
+
 
 // Obtener los términos actuales
 export const getCurrentTerms = async (req, res) => {
