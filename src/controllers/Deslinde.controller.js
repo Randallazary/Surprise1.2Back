@@ -5,20 +5,33 @@ export const createDeslinde = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
 
-        // Sanitizar los campos para prevenir scripts maliciosos
-        title = sanitizeHtml(title, {
-            allowedTags: [], // No permitir etiquetas HTML
-            allowedAttributes: {}, // No permitir atributos
-        });
-
-        content = sanitizeHtml(content, {
-            allowedTags: [], // No se permiten etiquetas HTML
-            allowedAttributes: {}, // No permitir atributos
-        });
-
-        // Validar si hay etiquetas <script> o atributos de eventos
-        const hasScriptTags = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-        const hasEventAttributes = /on\w+="[^"]*"/gi;
+         // Validar si los campos contienen etiquetas prohibidas como <b>, <i>, <u>
+              const forbiddenTags = ["b", "i", "u"];
+              const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
+        
+              if (tagRegex.test(title) || tagRegex.test(content)) {
+                  return res.status(400).json({
+                      message: "El uso de etiquetas HTML como <b>, <i> o <u> no está permitido.",
+                  });
+              }
+        
+              // Sanitizar los campos (remover cualquier etiqueta restante)
+              title = sanitizeHtml(title, {
+                  allowedTags: [], // No se permiten etiquetas HTML
+                  allowedAttributes: {}, // No se permiten atributos
+              });
+        
+              content = sanitizeHtml(content, {
+                  allowedTags: [], // No se permiten etiquetas HTML
+                  allowedAttributes: {}, // No se permiten atributos
+              });
+        
+              // Validar campos requeridos
+              if (!title || !content || !effectiveDate) {
+                  return res.status(400).json({
+                      message: "Todos los campos son requeridos, revise su solicitud.",
+                  });
+              }
 
         if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
             return res.status(400).json({
