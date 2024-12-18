@@ -58,6 +58,11 @@ export const createTerms = async (req, res) => {
             });
         }
 
+        // Si la fecha de vigencia es válida, asignamos la fecha de hoy
+        if (effectiveDateInMillis === currentDateInMillis) {
+            effectiveDateObj.setHours(0, 0, 0, 0); // Aseguramos que la fecha sea exactamente hoy
+        }
+
         // Crear el documento con la fecha ingresada
         const newTerms = new Terms({
             title,
@@ -78,7 +83,7 @@ export const createTerms = async (req, res) => {
     }
 };
 
-// El resto del código sigue igual...
+
 
 
 // Obtener los términos actuales
