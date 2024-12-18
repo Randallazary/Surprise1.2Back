@@ -51,6 +51,10 @@ export const createTerms = async (req, res) => {
         effectiveDateObj.setHours(0, 0, 0, 0);
         const effectiveDateInMillis = effectiveDateObj.getTime();
 
+        // Depuración: Verificar las fechas en milisegundos
+        console.log("Fecha actual (milisegundos):", currentDateInMillis);
+        console.log("Fecha de vigencia (milisegundos):", effectiveDateInMillis);
+
         // Verificar que la fecha de vigencia no sea anterior a hoy
         if (effectiveDateInMillis < currentDateInMillis) {
             return res.status(400).json({
@@ -78,7 +82,7 @@ export const createTerms = async (req, res) => {
     }
 };
 
-
+// El resto del código sigue igual...
 
 // Obtener los términos actuales
 export const getCurrentTerms = async (req, res) => {
