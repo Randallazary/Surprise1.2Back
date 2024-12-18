@@ -49,7 +49,7 @@ export const createTerms = async (req, res) => {
         effectiveDateObj.setHours(0, 0, 0, 0); // Igualmente establecemos la hora de la fecha de vigencia a las 00:00
 
         // Ya no validamos que la fecha de vigencia sea mayor que la actual, solo se valida que no sea inválida
-        if (effectiveDateObj < currentDate) {
+        if (effectiveDateObj <= currentDate) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior al día de hoy.",
             });
