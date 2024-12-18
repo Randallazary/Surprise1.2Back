@@ -51,11 +51,13 @@ export const createTerms = async (req, res) => {
         effectiveDateObj.setHours(0, 0, 0, 0);
         const effectiveDateInMillis = effectiveDateObj.getTime();
 
-        // Depuración: Verificar las fechas en milisegundos
-        console.log("Fecha actual (milisegundos):", currentDateInMillis);
-        console.log("Fecha de vigencia (milisegundos):", effectiveDateInMillis);
+        // Permitir que se pueda poner una fecha un día antes
+        if (effectiveDateInMillis < currentDateInMillis - 86400000) { // 86400000 ms = 1 día
+            // Si la fecha es anterior a un día antes, ajustamos la fecha a hoy
+            effectiveDateObj.setTime(currentDateInMillis);
+        }
 
-        // Verificar que la fecha de vigencia no sea anterior a hoy
+        // Verificar que la fecha de vigencia no sea anterior a hoy (si fue ajustada)
         if (effectiveDateInMillis < currentDateInMillis) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior a hoy.",
@@ -83,6 +85,7 @@ export const createTerms = async (req, res) => {
 };
 
 // El resto del código sigue igual...
+
 
 // Obtener los términos actuales
 export const getCurrentTerms = async (req, res) => {
