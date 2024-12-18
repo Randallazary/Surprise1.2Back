@@ -46,15 +46,12 @@ export const createTerms = async (req, res) => {
         const currentDate = new Date();
         currentDate.setHours(0, 0, 0, 0); // Establece la hora a las 00:00 para comparación sin tener en cuenta las horas
 
-        const yesterdayDate = new Date(currentDate);
-        yesterdayDate.setDate(currentDate.getDate() - 0); // Ajusta la fecha de ayer
-
         effectiveDateObj.setHours(0, 0, 0, 0); // Establece la hora de la fecha de vigencia a las 00:00
 
-        // Validar que la fecha de vigencia no sea anterior a ayer
-        if (effectiveDateObj < yesterdayDate) {
+        // Verificar que la fecha de vigencia no sea anterior a la fecha actual
+        if (effectiveDateObj < currentDate) {
             return res.status(400).json({
-                message: "La fecha de vigencia no puede ser anterior a ayer.",
+                message: "La fecha de vigencia no puede ser anterior a hoy.",
             });
         }
 
