@@ -54,7 +54,7 @@ export const createTerms = async (req, res) => {
         // Permitir que se pueda poner una fecha un día antes
         // Si la fecha es anterior a la fecha actual, sumamos un día recursivamente hasta que sea válida
         while (effectiveDateInMillis < currentDateInMillis) {
-            effectiveDateObj.setDate(effectiveDateObj.getDate() + 1);
+            effectiveDateObj.setDate(effectiveDateObj.getDate() + 2);
             effectiveDateInMillis = effectiveDateObj.getTime();
         }
 
