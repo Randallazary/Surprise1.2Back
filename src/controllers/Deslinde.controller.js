@@ -40,11 +40,8 @@ export const createDeslinde = async (req, res) => {
         }
 
         
-// Validar que la fecha de vigencia no sea menor a la fecha actual
-const today = new Date();
-today.setHours(0, 0, 0, 0); // Asegurarse de ignorar la hora en la comparación
 
-if (new Date(effectiveDate) < today) {
+if (effectiveDate < new Date()) {
     return res.status(400).json({
         message: "La fecha de vigencia no puede ser menor a la fecha actual.",
     });
