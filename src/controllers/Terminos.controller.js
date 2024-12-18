@@ -49,16 +49,10 @@ export const createTerms = async (req, res) => {
 
         // Obtener la fecha de vigencia como milisegundos
         effectiveDateObj.setHours(0, 0, 0, 0);
-        let effectiveDateInMillis = effectiveDateObj.getTime();
+        const effectiveDateInMillis = effectiveDateObj.getTime();
 
-        // Si la fecha de vigencia es anterior a la fecha actual, sumamos un día
+        // Verificar que la fecha de vigencia no sea anterior a hoy
         if (effectiveDateInMillis < currentDateInMillis) {
-            effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
-            effectiveDateInMillis = effectiveDateObj.getTime(); // Actualizar la fecha con el día sumado
-        }
-
-        // Verificar que la fecha de vigencia no sea anterior a hoy (si fue ajustada)
-        if (effectiveDateObj.getTime() < currentDateInMillis) {
             return res.status(400).json({
                 message: "La fecha de vigencia no puede ser anterior a hoy.",
             });
