@@ -6,51 +6,53 @@ export const createDeslinde = async (req, res) => {
     try {
         let { title, content, effectiveDate } = req.body;
 
-        // Validar si los campos contienen etiquetas prohibidas como <b>, <i>, <u>
-        const forbiddenTags = ["b", "i", "u"];
-        const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
+         // Validar si los campos contienen etiquetas prohibidas como <b>, <i>, <u>
+                        const forbiddenTags = ["b", "i", "u"];
+                        const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
+                  
+                        if (tagRegex.test(title) || tagRegex.test(content)) {
+                            return res.status(400).json({
+                                message: "El uso de etiquetas HTML como <b>, <i> o <u> no está permitido.",
+                            });
+                        }
+                  
+                        // Sanitizar los campos (remover cualquier etiqueta restante)
+                        title = sanitizeHtml(title, {
+                            allowedTags: [], // No se permiten etiquetas HTML
+                            allowedAttributes: {}, // No se permiten atributos
+                        });
+                  
+                        content = sanitizeHtml(content, {
+                            allowedTags: [], // No se permiten etiquetas HTML
+                            allowedAttributes: {}, // No se permiten atributos
+                        });
+                  
+                        // Validar campos requeridos
+                        if (!title || !content || !effectiveDate) {
+                            return res.status(400).json({
+                                message: "Todos los campos son requeridos, revise su solicitud.",
+                            });
+                        }
+            
+                    if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
+                        return res.status(400).json({
+                            message: "No se permiten scripts en los campos de texto.",
+                        });
+                    }
+            
+                    if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
+                        return res.status(400).json({
+                            message: "No se permiten atributos de eventos en los campos de texto.",
+                        });
+                    }
+              // Validar campos requeridos
+              if (!title || !content || !effectiveDate) {
+                  return res.status(400).json({
+                      message: "Por favor revisar los campos.",
+                  });
+              }
 
-        if (tagRegex.test(title) || tagRegex.test(content)) {
-            return res.status(400).json({
-                message: "El uso de etiquetas HTML como <b>, <i> o <u> no está permitido.",
-            });
-        }
-
-        // Sanitizar los campos (remover cualquier etiqueta restante)
-        title = sanitizeHtml(title, {
-            allowedTags: [], // No se permiten etiquetas HTML
-            allowedAttributes: {}, // No se permiten atributos
-        });
-
-        content = sanitizeHtml(content, {
-            allowedTags: [], // No se permiten etiquetas HTML
-            allowedAttributes: {}, // No se permiten atributos
-        });
-
-        // Validar campos requeridos
-        if (!title || !content || !effectiveDate) {
-            return res.status(400).json({
-                message: "Todos los campos son requeridos, revise su solicitud.",
-            });
-        }
-
-        if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
-            return res.status(400).json({
-                message: "No se permiten scripts en los campos de texto.",
-            });
-        }
-
-        if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
-            return res.status(400).json({
-                message: "No se permiten atributos de eventos en los campos de texto.",
-            });
-        }
-        // Validar campos requeridos
-        if (!title || !content || !effectiveDate) {
-            return res.status(400).json({
-                message: "Por favor revisar los campos.",
-            });
-        }
+              
         // Validar que la fecha de vigencia no sea anterior a un día antes de la fecha actual
         const today = new Date();
         today.setDate(today.getDate() - 1); // Restar un día
