@@ -4,63 +4,46 @@ export const createPrivacyPolicy = async (req, res) => {
   try {
       let { title, content, effectiveDate } = req.body;
 
-      // Sanitizar los campos para prevenir scripts maliciosos
+      // Validar si los campos contienen etiquetas prohibidas como <b>, <i>, <u>
+      const forbiddenTags = ["b", "i", "u"];
+      const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
+
+      if (tagRegex.test(title) || tagRegex.test(content)) {
+          return res.status(400).json({
+              message: "El uso de etiquetas HTML como <b>, <i> o <u> no está permitido.",
+          });
+      }
+
+      // Sanitizar los campos (remover cualquier etiqueta restante)
       title = sanitizeHtml(title, {
-          allowedTags: [], // No permitir etiquetas HTML
-          allowedAttributes: {}, // No permitir atributos
+          allowedTags: [], // No se permiten etiquetas HTML
+          allowedAttributes: {}, // No se permiten atributos
       });
 
       content = sanitizeHtml(content, {
-        allowedTags: [], // No se permiten etiquetas HTML
-          allowedAttributes: {}, // No permitir atributos
+          allowedTags: [], // No se permiten etiquetas HTML
+          allowedAttributes: {}, // No se permiten atributos
       });
-
-      // Validar si hay etiquetas <script> o atributos de eventos
-      const hasScriptTags = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-      const hasEventAttributes = /on\w+="[^"]*"/gi;
-
-      if (hasScriptTags.test(title) || hasScriptTags.test(content)) {
-          return res.status(400).json({
-              message: "No se permiten scripts en los campos de texto.",
-          });
-      }
-
-      if (hasEventAttributes.test(title) || hasEventAttributes.test(content)) {
-          return res.status(400).json({
-              message: "No se permiten atributos de eventos en los campos de texto.",
-          });
-      }
 
       // Validar campos requeridos
       if (!title || !content || !effectiveDate) {
           return res.status(400).json({
-              message: "Por favor revisar los campos.",
+              message: "Todos los campos son requeridos, revise su solicitud.",
           });
       }
 
-      const currentDate = new Date();
-      const effectiveDateObj = new Date(effectiveDate);
-      
-      // Comparar solo año, mes y día, sin tener en cuenta la hora, minutos y segundos
-      const currentDateStr = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
-      const effectiveDateStr = effectiveDateObj.toISOString().split('T')[0]; // YYYY-MM-DD
-
-      // Comparar si la fecha de vigencia es anterior a la fecha actual
-      if (effectiveDateStr < currentDateStr) {
-          // Si la fecha de vigencia es anterior, lanzar el mensaje de error
+      // Validar que la fecha de vigencia no sea anterior a la fecha actual
+      if (new Date(effectiveDate) < new Date()) {
           return res.status(400).json({
-              message: "La fecha de vigencia no puede ser anterior a un día antes de la fecha actual.",
+              message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
           });
-      } 
+      }
 
-      // Si la fecha de vigencia es correcta, sumamos un día a la fecha
-      effectiveDateObj.setDate(effectiveDateObj.getDate() + 1); // Sumar un día
-
-      // Crear una nueva política de privacidad
+      // Crear una nueva política
       const newPolicy = new PrivacyPolicy({
           title,
           content,
-          effectiveDate: effectiveDateObj, // Usar la fecha modificada
+          effectiveDate,
           isCurrent: false, // Por defecto, no es actual
       });
 
