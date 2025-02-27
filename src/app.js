@@ -8,6 +8,9 @@ import politicas from './routes/Politicas.routes.js';
 import terminos from './routes/Terminos.routes.js';
 import deslinde from './routes/Deslinde.routes.js';
 import logoRoutes from './routes/Logo.routes.js';
+import producto from './routes/Producto.route.js';
+
+
 
 // Configuración de CORS para producción
 const listWhite = [
@@ -48,6 +51,8 @@ app.use('/api/docs', politicas);
 app.use('/api/docs', terminos);
 app.use('/api/docs', deslinde);
 app.use('/api/logo', logoRoutes);
+app.use('/api/productos', producto);
+
 
 
 app.get('/', (req, res) => {
@@ -56,7 +61,10 @@ app.get('/', (req, res) => {
 
 // Manejo de rutas no encontradas (404)
 app.use((req, res, next) => {
-    res.status(404).json({ message: 'Ruta incorrecta' });
+    res.status(404).sendFile(path.join(process.cwd(), 'public', '404.jpg'));
 });
+
+
+
 
 export default app;
