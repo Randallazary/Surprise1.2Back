@@ -1,5 +1,5 @@
-import { Router } from "express";
-import * as userController from "../controllers/User.controller.js";
+import { Router } from 'express';
+import * as userController from '../controllers/User.controller.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 
 const router = Router();
@@ -10,12 +10,15 @@ router.post('/login', userController.login); // Inicio de sesión y entrega de t
 router.get('/verify/:token', userController.verifyAccount); // Verificar cuenta por token
 router.post('/send-reset-email', userController.sendPasswordResetLink);
 router.post('/reset-password/:token', userController.resetPassword); // Restablecer la contraseña
+router.post('/get-secret-question', userController.getSecretQuestion);  // Usando el controlador
+router.post('/verify-secret-answer', userController.verifySecretAnswer);  // Usando el controlador
+
+
 
 // Rutas protegidas (requieren token de autenticación)
 router.get('/profile', isAuthenticated, userController.getProfile); // Perfil del usuario 
 router.get('/check-session', isAuthenticated, userController.checkSession); // Verificar la sesión
 router.post('/logout', isAuthenticated, userController.logout); // Cerrar sesión
-
 
 // Ruta protegida para obtener todos los usuarios (solo admin)
 router.get('/users', isAuthenticated, isAdmin, userController.getAllUsers);
@@ -24,7 +27,6 @@ router.get('/users', isAuthenticated, isAdmin, userController.getAllUsers);
 router.get('/admin/recent-users', isAuthenticated, isAdmin, userController.getRecentUsers);
 router.get('/admin/recent-blocked', isAuthenticated, isAdmin, userController.getRecentBlockedUsers);
 router.get('/admin/failed-login-attempts', isAuthenticated, isAdmin, userController.getFailedLoginAttempts);
-
 
 // Bloquear usuario
 router.post('/admin/block-user', isAuthenticated, isAdmin, userController.blockUser);
@@ -35,6 +37,5 @@ router.post('/admin/unblock-user', isAuthenticated, isAdmin, userController.unbl
 
 // Ruta del admin para ver inicios de sesión recientes
 router.get('/admin/recent-logins', isAuthenticated, isAdmin, userController.getRecentLogins);
-
 
 export default router;

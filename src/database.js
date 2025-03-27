@@ -1,18 +1,18 @@
 import mongoose from 'mongoose';
 import dns from 'dns';
 import net from 'net';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient(); // Conexión a Prisma
+
+
 
 // URI de MongoDB Atlas (Producción)
-// const atlasURI = 'mongodb+srv://randyrubio06:tacodepastor1@dbsurprise.u639y.mongodb.net/dbSurprise?retryWrites=true&w=majority';
+ const atlasURI = 'mongodb+srv://randyrubio06:tacodepastor1@dbsurprise.u639y.mongodb.net/dbSurprise?retryWrites=true&w=majority';
 
 // URI local para la base de datos 'Refaccionaria'  
-// const localURI = 'mongodb://localhost:27017/surpriseDB';
+ const localURI = 'mongodb://localhost:27017/surpriseDB';
 
 // Función para conectar a MongoDB con reintento automático
-/*
+
 const connectWithRetry = (uri) => {
   mongoose.connect(uri,)
     .then(() => console.log('Conexión exitosa a MongoDB'))
@@ -30,21 +30,9 @@ const connectWithRetry = (uri) => {
       });
     });
 };
-*/
 
-// Conectar Prisma
-async function connectPrisma() {
-  try {
-    await prisma.$connect();
-    console.log('✅ Conexión exitosa a SQL Server con Prisma');
-  } catch (error) {
-    console.error('❌ Error al conectar con SQL Server:', error);
-  }
-}
+// Conecta usando la URI local o de producción según sea necesario
+//connectWithRetry(localURI); // Descomentar para entorno de desarrollo local
+connectWithRetry(localURI); // Comentar para usar entorno local
 
-connectPrisma(); // Ejecuta la conexión a Prisma
-
-// Exportar Prisma para su uso en otros archivos
-export { prisma };
-
-// export default mongoose; // Descomentar si quieres seguir usando MongoDB también
+export default mongoose;

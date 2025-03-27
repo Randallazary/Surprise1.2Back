@@ -1,193 +1,242 @@
-import PrivacyPolicy from '../models/Politicas.model.js';
+import { PrismaClient } from '@prisma/client';
 import sanitizeHtml from 'sanitize-html';
-import moment from 'moment-timezone';
 
-// Crear una nueva política de privacidad
+const prisma = new PrismaClient();
+
+/**
+ * Crear una nueva política de privacidad
+ */
 export const createPrivacyPolicy = async (req, res) => {
-    try {
-        let { title, content, effectiveDate } = req.body;
+  try {
+    let { title, content, effectiveDate } = req.body;
 
-        const forbiddenTags = [
-          "b", "i", "u", "h1", "h2", "h3", "h4", "h5", "h6", 
-          "center", "hr", "p", "br", "pre", "sub", "img", 
-          "script", "iframe", "embed", "object", "link", "style"
-      ];
-      
-      // Expresión regular para detectar las etiquetas prohibidas en el contenido
-      const tagRegex = new RegExp(`</?(${forbiddenTags.join("|")})\\b[^>]*>`, "i");
+    // Sanitizar campos
+    title = sanitizeHtml(title, {
+      allowedTags: [],
+      allowedAttributes: {},
+    });
+    content = sanitizeHtml(content, {
+      allowedTags: ["b", "i", "u"],
+      allowedAttributes: {},
+    });
 
-      // Validar si el título o el contenido contienen etiquetas prohibidas
-      if (tagRegex.test(title) || tagRegex.test(content)) {
-          return res.status(400).json({
-              message: "El uso de etiquetas HTML. no está permitido.",
-          });
-      }
-
-        // Sanitizar los campos (remover cualquier etiqueta restante)
-        title = sanitizeHtml(title, {
-            allowedTags: [],
-            allowedAttributes: {},
-        });
-
-        content = sanitizeHtml(content, {
-            allowedTags: [],
-            allowedAttributes: {},
-        });
-
-        // Validar campos requeridos
-        if (!title || !content || !effectiveDate) {
-            return res.status(400).json({
-                message: "Todos los campos son requeridos, revise su solicitud.",
-            });
-        }
-
-        // Verificar si la fecha recibida es válida
-        if (!moment(effectiveDate, moment.ISO_8601, true).isValid()) {
-            return res.status(400).json({
-                message: "La fecha de vigencia es inválida.",
-            });
-        }
-
-        // Usar la zona horaria de Ciudad de México
-        const mexicoTime = moment.tz("America/Mexico_City");
-
-        // Validar la fecha de vigencia en la zona horaria de Ciudad de México
-        const effectiveDateObj = moment.tz(effectiveDate, "America/Mexico_City").startOf('day'); // Usamos `startOf('day')` para asegurarnos de que sea solo la fecha sin la hora
-        const currentDateObj = mexicoTime.startOf('day'); // Fecha de hoy en la zona horaria de México
-
-        // Verificar que la fecha de vigencia no sea anterior a hoy
-        if (effectiveDateObj.isBefore(currentDateObj)) {
-            return res.status(400).json({
-                message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
-            });
-        }
-
-        // Crear la política con la fecha ingresada
-        const newPolicy = new PrivacyPolicy({
-            title,
-            content,
-            effectiveDate: effectiveDateObj.toDate(),
-            isCurrent: false,
-        });
-
-        await newPolicy.save();
-
-        return res.status(201).json({
-            message: "Política de privacidad creada exitosamente",
-            policy: newPolicy,
-        });
-    } catch (error) {
-        console.error("Error al crear la política de privacidad:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+    // Validar campos requeridos
+    if (!title || !content || !effectiveDate) {
+      return res.status(400).json({
+        message: "Todos los campos son requeridos, revise su solicitud.",
+      });
     }
+
+    // Validar que la fecha de vigencia no sea anterior a la fecha actual
+    if (new Date(effectiveDate) < new Date()) {
+      return res.status(400).json({
+        message: "La fecha de vigencia no puede ser anterior a la fecha actual.",
+      });
+    }
+
+    // Crear la nueva política con isCurrent = false
+    const newPolicy = await prisma.politicasDePrivacidad.create({
+      data: {
+        title,
+        content,
+        effectiveDate: new Date(effectiveDate),
+        isCurrent: false,
+      },
+    });
+
+    return res.status(201).json({
+      message: "Política de privacidad creada exitosamente",
+      policy: newPolicy,
+    });
+  } catch (error) {
+    console.error("Error al crear la política de privacidad:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
 };
 
-// Obtener la política de privacidad actual
+/**
+ * Obtener la política de privacidad actual (isCurrent = true)
+ */
 export const getCurrentPrivacyPolicy = async (req, res) => {
-    try {
-        const currentPolicy = await PrivacyPolicy.findOne({ isCurrent: true });
+  try {
+    // findFirst con isCurrent = true
+    const currentPolicy = await prisma.politicasDePrivacidad.findFirst({
+      where: { isCurrent: true },
+    });
 
-        if (!currentPolicy) {
-            return res.status(404).json({ message: "No se encontró una política de privacidad actual" });
-        }
-
-        res.status(200).json(currentPolicy);
-    } catch (error) {
-        console.error("Error al obtener la política de privacidad actual:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+    if (!currentPolicy) {
+      return res
+        .status(404)
+        .json({ message: "No se encontró una política de privacidad actual" });
     }
+
+    res.status(200).json(currentPolicy);
+  } catch (error) {
+    console.error("Error al obtener la política de privacidad actual:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
 };
 
-// Obtener todas las políticas de privacidad
+/**
+ * Obtener todas las políticas de privacidad (ordenadas por createdAt desc)
+ */
 export const getAllPrivacyPolicies = async (req, res) => {
-    try {
-        const policies = await PrivacyPolicy.find().sort({ createdAt: -1 });
-        res.status(200).json(policies);
-    } catch (error) {
-        console.error("Error al obtener todas las políticas de privacidad:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
-    }
+  try {
+    const policies = await prisma.politicasDePrivacidad.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    res.status(200).json(policies);
+  } catch (error) {
+    console.error("Error al obtener todas las políticas de privacidad:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
 };
 
-// Actualizar una política de privacidad existente
+/**
+ * Actualizar una política de privacidad existente
+ */
 export const updatePrivacyPolicy = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, content, effectiveDate } = req.body;
+  try {
+    const { id } = req.params;
+    const { title, content, effectiveDate } = req.body;
 
-        // Validar si la política existe
-        const policyExists = await PrivacyPolicy.findById(id);
-        if (!policyExists) {
-            return res.status(404).json({ message: "No se encontró la política de privacidad a actualizar" });
-        }
+    // Convertir el id a número
+    const numericId = Number(id);
 
-        const updatedPolicy = await PrivacyPolicy.findByIdAndUpdate(
-            id,
-            { title, content, effectiveDate },
-            { new: true }
-        );
+    // Actualizar el registro
+    // Nota: si deseas sanitizar aquí también, puedes hacerlo igual que en create
+    const updatedPolicy = await prisma.politicasDePrivacidad.update({
+      where: { id: numericId },
+      data: {
+        title,
+        content,
+        effectiveDate: effectiveDate ? new Date(effectiveDate) : undefined,
+      },
+    });
 
-        res.status(200).json({
-            message: "Política de privacidad actualizada exitosamente",
-            policy: updatedPolicy,
-        });
-    } catch (error) {
-        console.error("Error al actualizar la política de privacidad:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+    if (!updatedPolicy) {
+      return res
+        .status(404)
+        .json({ message: "No se encontró la política de privacidad a actualizar" });
     }
+
+    res.status(200).json({
+      message: "Política de privacidad actualizada exitosamente",
+      policy: updatedPolicy,
+    });
+  } catch (error) {
+    console.error("Error al actualizar la política de privacidad:", error);
+    // Si no encuentra el registro, Prisma lanza error con code 'P2025'
+    if (error.code === "P2025") {
+      return res
+        .status(404)
+        .json({ message: "No se encontró la política de privacidad a actualizar" });
+    }
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
 };
 
-// Eliminar una política de privacidad
+/**
+ * Eliminar una política de privacidad
+ */
 export const deletePrivacyPolicy = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const policyToDelete = await PrivacyPolicy.findById(id);
-        if (!policyToDelete) {
-            return res.status(404).json({ message: "Política de privacidad no encontrada." });
-        }
-
-        await PrivacyPolicy.findByIdAndDelete(id);
-
-        if (policyToDelete.isCurrent) {
-            const latestPolicy = await PrivacyPolicy.findOne().sort({ createdAt: -1 });
-            if (latestPolicy) {
-                latestPolicy.isCurrent = true;
-                await latestPolicy.save();
-                return res.status(200).json({
-                    message: "Política eliminada y la más reciente establecida como actual.",
-                    latestPolicy,
-                });
-            }
-        }
-
-        res.status(200).json({ message: "Política de privacidad eliminada exitosamente." });
-    } catch (error) {
-        console.error("Error al eliminar la política de privacidad:", error);
-        res.status(500).json({ message: "Error interno del servidor." });
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ message: "El ID de la política es requerido." });
     }
+
+    const numericId = Number(id);
+
+    // Buscar la política a eliminar
+    const policyToDelete = await prisma.politicasDePrivacidad.findUnique({
+      where: { id: numericId },
+    });
+    if (!policyToDelete) {
+      return res.status(404).json({ message: "Política no encontrada." });
+    }
+
+    // Eliminar la política
+    await prisma.politicasDePrivacidad.delete({
+      where: { id: numericId },
+    });
+
+    // Si la política eliminada era la actual, establecer la más reciente como actual
+    if (policyToDelete.isCurrent) {
+      const latestPolicy = await prisma.politicasDePrivacidad.findFirst({
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (latestPolicy) {
+        const updatedLatest = await prisma.politicasDePrivacidad.update({
+          where: { id: latestPolicy.id },
+          data: { isCurrent: true },
+        });
+        return res.status(200).json({
+          message:
+            "Política eliminada y la más reciente establecida como actual.",
+          latestPolicy: updatedLatest,
+        });
+      } else {
+        return res.status(200).json({
+          message: "Política eliminada. No hay más políticas disponibles.",
+        });
+      }
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Política eliminada exitosamente." });
+  } catch (error) {
+    console.error("Error al eliminar la política de privacidad:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
+  }
 };
 
-// Establecer una política como la actual
+/**
+ * Establecer una política como la actual
+ */
 export const setAsCurrentPrivacyPolicy = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
+    const numericId = Number(id);
 
-        await PrivacyPolicy.updateMany({ isCurrent: true }, { isCurrent: false });
+    // Desmarcar cualquier política que esté como actual
+    await prisma.politicasDePrivacidad.updateMany({
+      where: { isCurrent: true },
+      data: { isCurrent: false },
+    });
 
-        const currentPolicy = await PrivacyPolicy.findByIdAndUpdate(
-            id,
-            { isCurrent: true },
-            { new: true }
-        );
+    // Marcar la nueva política como actual
+    const currentPolicy = await prisma.politicasDePrivacidad.update({
+      where: { id: numericId },
+      data: { isCurrent: true },
+    });
 
-        if (!currentPolicy) {
-            return res.status(404).json({ message: "No se encontró la política de privacidad a establecer como actual" });
-        }
-
-        res.status(200).json({ message: "Política de privacidad marcada como actual exitosamente", policy: currentPolicy });
-    } catch (error) {
-        console.error("Error al establecer la política de privacidad como actual:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+    if (!currentPolicy) {
+      return res.status(404).json({
+        message:
+          "No se encontró la política de privacidad a establecer como actual",
+      });
     }
+
+    return res.status(200).json({
+      message: "Política de privacidad marcada como actual exitosamente",
+      policy: currentPolicy,
+    });
+  } catch (error) {
+    console.error(
+      "Error al establecer la política de privacidad como actual:",
+      error
+    );
+    if (error.code === "P2025") {
+      return res.status(404).json({
+        message:
+          "No se encontró la política de privacidad a establecer como actual",
+      });
+    }
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
 };
