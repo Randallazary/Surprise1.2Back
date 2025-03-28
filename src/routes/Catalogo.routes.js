@@ -1,12 +1,10 @@
 import { Router } from "express";
-import * as catalogoController from "../controllers/catalogo.controller.js"; // Asegúrate de que el archivo esté correctamente nombrado (minúsculas si es necesario)
+// Ruta CORRECTA (sube un nivel y luego entra a controllers)
+import { getCatalogo, getProductDetails } from "./../controllers/catalogo.controller.js";
 
 const router = Router();
 
-// Ruta para obtener el catálogo con filtros
-router.get("/catalogo", catalogoController.getCatalogo);
-
-// Ruta para obtener detalles de un producto específico en el catálogo
-router.get("/catalogo/:id", catalogoController.getProductDetails);
+router.get("/catalogo", getCatalogo);
+router.get("/catalogo/:id", getProductDetails);
 
 export default router;

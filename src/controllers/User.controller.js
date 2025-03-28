@@ -10,7 +10,6 @@ const SECRET = process.env.SECRET || 'super-secret-key'; // ⚠️ No almacenar 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOGIN_TIMEOUT = 1 * 60 * 1000;
 
-
 // 🔓 Registro de usuario y verificación de cuenta
 export const signUp = async (req, res) => {
     try {
@@ -29,7 +28,6 @@ export const signUp = async (req, res) => {
       if (!name || !lastname || name.length < 2 || lastname.length < 2) {
         return res.status(400).json({ message: "Datos incompletos o inválidos" });
       }
-  
       // 📅 Verificar si el correo ya está registrado para evitar duplicados
       const existingUser = await prisma.usuarios.findUnique({ where: { email } });
       if (existingUser)  {
@@ -55,6 +53,7 @@ export const signUp = async (req, res) => {
           <a href="${verificationUrl}">Verificar Cuenta</a>
           <p>Este enlace expirará en 1 hora.</p>
         `
+
       });
   
       // 📊 Guardar usuario en la base de datos con campo de verificación inicializado en `false`
@@ -262,8 +261,7 @@ export const signUp = async (req, res) => {
     };
 
 
-
-    // Controlador checkSession en User.controller.js
+// Controlador checkSession en User.controller.js
 export const checkSession = (req, res) => {
     const { token } = req.cookies;
     if (!token) {
@@ -310,7 +308,6 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
-
 export const getProfile = async (req, res) => {
     try {
       const userId = Number(req.userId); // <-- ya existe
@@ -349,6 +346,50 @@ export const getProfile = async (req, res) => {
     }
   };
 
+
+  export const updateProfile = async (req, res) => {
+    try {
+        const userId = Number(req.userId);
+        const {
+            name,
+            lastname,
+            telefono,
+        } = req.body;
+
+        // Validar que al menos un campo sea proporcionado
+        if (!name && !lastname && !telefono) {
+            return res.status(400).json({ message: "Debe proporcionar al menos un campo para actualizar." });
+        }
+
+        const updateData = {
+            ...(name && { name }),
+            ...(lastname && { lastname }),
+            ...(telefono && { telefono }),
+        };
+
+        const updatedUser = await prisma.usuarios.update({
+            where: { id: userId },
+            data: updateData,
+            select: {
+                id: true,
+                name: true,
+                lastname: true,
+                email: true,
+                telefono: true,
+                user: true,
+                verified: true,
+                role: true,
+                createdAt: true,
+                updatedAt: true
+            }
+        });
+
+        return res.status(200).json(updatedUser);
+    } catch (error) {
+        console.error("Error actualizando perfil:", error);
+        return res.status(500).json({ message: "Error interno del servidor." });
+    }
+};
   //extraer todos los usuarios
 
   export const getAllUsers = async (req, res) => {
@@ -384,59 +425,6 @@ export const getProfile = async (req, res) => {
       return res.status(500).json({ message: "Error interno del servidor" });
     }
   };
-
-
-  export const getSecretQuestion = async (req, res) => {
-    try {
-      const { email } = req.body; // El email del usuario
-  
-      // Buscar al usuario en la base de datos usando Prisma
-      const user = await prisma.usuarios.findUnique({
-        where: { email: email },
-        select: { preguntaSecreta: true }, // Solo seleccionamos la pregunta secreta
-      });
-  
-      // Verificar si el usuario existe
-      if (!user) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
-      }
-  
-      // Retornar la pregunta secreta al cliente
-      res.status(200).json({ secretQuestion: user.preguntaSecreta });
-    } catch (error) {
-      console.error('Error al obtener la pregunta secreta:', error);
-      res.status(500).json({ error: 'Error al obtener la pregunta secreta' });
-    }
-  };
-  
-  
-  export const verifySecretAnswer = async (req, res) => {
-    try {
-      const { email, secretAnswer } = req.body; // El email y la respuesta secreta
-  
-      // Buscar al usuario en la base de datos usando Prisma
-      const user = await prisma.usuarios.findUnique({
-        where: { email: email },
-        select: { respuestaSecreta: true }, // Solo seleccionamos la respuesta secreta
-      });
-  
-      // Verificar si el usuario existe
-      if (!user) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
-      }
-  
-      // Comparar las respuestas
-      if (user.respuestaSecreta === secretAnswer) {
-        return res.status(200).json({ message: 'Respuesta secreta correcta' });
-      } else {
-        return res.status(400).json({ error: 'Respuesta secreta incorrecta' });
-      }
-    } catch (error) {
-      console.error('Error al verificar la respuesta secreta:', error);
-      res.status(500).json({ error: 'Error al verificar la respuesta secreta' });
-    }
-  };
-  
 
 
   export const resetPassword = async (req, res) => {
@@ -591,7 +579,7 @@ export const sendPasswordResetLink = async (req, res) => {
     });
 
     // Crear el enlace de restablecimiento
-     const resetUrl = `http://localhost:3000/restorepassword/${token}`;
+    const resetUrl = `http://localhost:3000/restorepassword/${token}`;
      //const resetUrl = `https://surprise1-2.vercel.app/restorepassword/${token}`;
 
     // Enviar el correo con el enlace de restablecimiento de contraseña
@@ -659,7 +647,6 @@ export const getFailedLoginAttempts = async (req, res) => {
 };
 
 
-
 export const blockUser = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -692,8 +679,6 @@ export const blockUser = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor." });
   }
 };
-
-
 
 export const unblockUser = async (req, res) => {
   try {
@@ -760,7 +745,6 @@ export const getRecentLogins = async (req, res) => {
   }
 };
 
-
 export const blockUserTemporarily = async (req, res) => {
   try {
     const { email, lockDuration } = req.body;
@@ -804,5 +788,321 @@ export const blockUserTemporarily = async (req, res) => {
   } catch (error) {
     console.error("Error al bloquear al usuario temporalmente:", error);
     return res.status(500).json({ message: "Error interno del servidor." });
+  }
+};
+
+
+
+// Eliminar usuario (solo admin)
+export const deleteUser = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    
+    // Verificar que el usuario existe
+    const userToDelete = await prisma.usuarios.findUnique({
+      where: { id: userId }
+    });
+
+    if (!userToDelete) {
+      return res.status(404).json({ message: "Usuario no encontrado." });
+    }
+
+    // Eliminar el usuario
+    await prisma.usuarios.delete({
+      where: { id: userId }
+    });
+
+    return res.status(200).json({ message: "Usuario eliminado correctamente." });
+
+  } catch (error) {
+    console.error("Error eliminando usuario:", error);
+    return res.status(500).json({ message: "Error interno del servidor." });
+  }
+};
+
+// Actualizar usuario como admin (puede actualizar más campos)
+export const adminUpdateUser = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    const {
+      name,
+      lastname,
+      email,
+      telefono,
+      role,
+      blocked,
+      verified
+    } = req.body;
+
+    // Verificar que el usuario existe
+    const existingUser = await prisma.usuarios.findUnique({
+      where: { id: userId }
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "Usuario no encontrado." });
+    }
+
+    // Preparar datos para actualizar
+    const updateData = {
+      ...(name && { name }),
+      ...(lastname && { lastname }),
+      ...(email && { email }),
+      ...(telefono && { telefono }),
+      ...(role && { role }),
+      ...(typeof blocked !== 'undefined' && { blocked }),
+      ...(typeof verified !== 'undefined' && { verified }),
+    };
+
+    // Actualizar el usuario
+    const updatedUser = await prisma.usuarios.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        lastname: true,
+        email: true,
+        telefono: true,
+        role: true,
+        verified: true,
+        blocked: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
+
+    return res.status(200).json(updatedUser);
+
+  } catch (error) {
+    console.error("Error actualizando usuario como admin:", error);
+    
+    // Manejar error de email único
+    if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+      return res.status(400).json({ message: "El email ya está en uso por otro usuario." });
+    }
+    
+    return res.status(500).json({ message: "Error interno del servidor." });
+  }
+};
+
+
+
+
+/**
+ * Obtiene la pregunta secreta de un usuario por email
+ */
+export const getSecretQuestion = async (req, res) => {
+  try {
+    const email = req.params.email || req.body.email;
+    
+    if (!email) {
+      return res.status(400).json({ message: "Email es requerido" });
+    }
+
+    // Buscar al usuario sin revelar si existe o no
+    const user = await prisma.usuarios.findUnique({
+      where: { email },
+      select: {
+        preguntaSecreta: true,
+        blocked: true,
+        lockedUntil: true
+      }
+    });
+
+    // Respuesta genérica para no revelar información
+    const genericResponse = {
+      success: true,
+      question: "Por favor conteste su pregunta secreta",
+      isBlocked: false,
+      lockedUntil: null
+    };
+
+    if (!user) {
+      return res.status(200).json(genericResponse);
+    }
+
+    // Verificar si la cuenta está bloqueada
+    if (user.blocked) {
+      return res.status(403).json({
+        success: false,
+        message: "Cuenta bloqueada permanentemente. Contacte al administrador."
+      });
+    }
+
+    // Verificar bloqueo temporal
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const remainingTime = Math.ceil((user.lockedUntil - new Date()) / 1000 / 60);
+      return res.status(403).json({
+        success: false,
+        message: `Cuenta bloqueada temporalmente. Intente nuevamente en ${remainingTime} minutos.`,
+        lockedUntil: user.lockedUntil
+      });
+    }
+
+    // Devolver la pregunta real si todo está bien
+    return res.status(200).json({
+      success: true,
+      question: user.preguntaSecreta || genericResponse.question,
+      isBlocked: false,
+      lockedUntil: null
+    });
+
+  } catch (error) {
+    console.error("Error en getSecretQuestion:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error interno del servidor al obtener pregunta secreta"
+    });
+  }
+};
+
+/**
+ * Verifica la respuesta a la pregunta secreta
+ */
+export const verifySecretQuestion = async (req, res) => {
+  try {
+    const { email, respuestaSecreta, telefono } = req.body;
+
+    // Validación de datos de entrada
+    if (!email || !respuestaSecreta || !telefono) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Email, respuesta secreta y teléfono son requeridos" 
+      });
+    }
+
+    // Buscar al usuario con los datos necesarios
+    const user = await prisma.usuarios.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        respuestaSecreta: true,
+        telefono: true,
+        failedLoginAttempts: true,
+        blocked: true,
+        lockedUntil: true,
+        lockCount: true
+      }
+    });
+
+    // Respuesta genérica para no revelar si el usuario existe
+    const genericError = {
+      success: false,
+      message: "Datos incorrectos"
+    };
+
+    if (!user) {
+      return res.status(400).json(genericError);
+    }
+
+    // Verificar estado de la cuenta
+    if (user.blocked) {
+      return res.status(403).json({ 
+        success: false,
+        message: "Cuenta bloqueada permanentemente. Contacte al administrador." 
+      });
+    }
+
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const remainingTime = Math.ceil((user.lockedUntil - new Date()) / 1000 / 60);
+      return res.status(403).json({ 
+        success: false,
+        message: `Cuenta bloqueada temporalmente. Intente nuevamente en ${remainingTime} minutos.`,
+        lockedUntil: user.lockedUntil
+      });
+    }
+
+    // Normalizar datos para comparación
+    const isAnswerCorrect = user.respuestaSecreta.trim().toLowerCase() === 
+                          respuestaSecreta.trim().toLowerCase();
+    const isPhoneCorrect = user.telefono.trim() === telefono.trim();
+
+    // Si la verificación es exitosa
+    if (isAnswerCorrect && isPhoneCorrect) {
+      // Resetear intentos fallidos si existen
+      if (user.failedLoginAttempts > 0) {
+        await prisma.usuarios.update({
+          where: { id: user.id },
+          data: { failedLoginAttempts: 0 }
+        });
+      }
+
+      // Generar token para cambio de contraseña (válido por 15 minutos)
+      const resetToken = jwt.sign(
+        { 
+          userId: user.id, 
+          purpose: 'password_reset_secret_question',
+          email: user.email
+        }, 
+        SECRET, 
+        { expiresIn: '15m' }
+      );
+
+      // Opcional: Enviar código por email
+      const resetCode = generateRandomCode(6);
+      await sendEmail({
+        to: user.email,
+        subject: 'Código de verificación',
+        text: `Su código para restablecer contraseña es: ${resetCode}`
+      });
+
+      return res.status(200).json({ 
+        success: true,
+        message: "Verificación exitosa",
+        token: resetToken,
+        resetCode // Opcional: enviar código por respuesta si no se usa email
+      });
+    }
+
+    // Manejo de intentos fallidos
+    const newAttempts = user.failedLoginAttempts + 1;
+    const remainingAttempts = 3 - newAttempts;
+
+    // Bloquear después de 3 intentos fallidos
+    if (newAttempts >= 3) {
+      const shouldBlockPermanently = user.lockCount >= 3;
+      
+      await prisma.usuarios.update({
+        where: { id: user.id },
+        data: shouldBlockPermanently ? {
+          blocked: true,
+          failedLoginAttempts: newAttempts,
+          lockedUntil: null
+        } : {
+          failedLoginAttempts: newAttempts,
+          lockedUntil: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
+          lockCount: { increment: 1 }
+        }
+      });
+
+      return res.status(403).json({
+        success: false,
+        message: shouldBlockPermanently 
+          ? "Cuenta bloqueada permanentemente por seguridad. Contacte al administrador."
+          : "Demasiados intentos fallidos. Cuenta bloqueada por 30 minutos.",
+        permanentBlock: shouldBlockPermanently
+      });
+    }
+
+    // Actualizar intentos fallidos
+    await prisma.usuarios.update({
+      where: { id: user.id },
+      data: { failedLoginAttempts: newAttempts }
+    });
+
+    return res.status(400).json({
+      success: false,
+      message: `Datos incorrectos. Le quedan ${remainingAttempts} intentos.`,
+      remainingAttempts
+    });
+
+  } catch (error) {
+    console.error("Error en verifySecretQuestion:", error);
+    return res.status(500).json({ 
+      success: false,
+      message: "Error interno del servidor durante la verificación" 
+    });
   }
 };

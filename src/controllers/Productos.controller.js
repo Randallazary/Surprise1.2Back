@@ -14,7 +14,6 @@ export const crearProducto = async (req, res) => {
       category,
       brand,
       discount,
-      supplierId = 1 // Valor por defecto 1
     } = req.body;
 
     // Validación mejorada
@@ -22,18 +21,6 @@ export const crearProducto = async (req, res) => {
       return res.status(400).json({ 
         message: "Nombre y categoría son campos obligatorios." 
       });
-    }
-
-    // Verificar si el proveedor existe (solo si se envía un supplierId)
-    if (supplierId && supplierId !== 1) {
-      const proveedorExistente = await prisma.proveedores.findUnique({
-        where: { id: parseInt(supplierId) }
-      });
-      if (!proveedorExistente) {
-        return res.status(400).json({ 
-          message: "El proveedor especificado no existe." 
-        });
-      }
     }
 
     // Manejo de imágenes
@@ -52,15 +39,12 @@ export const crearProducto = async (req, res) => {
         category,
         brand: brand || "",
         discount: discount ? parseFloat(discount) : 0,
-        supplierId: parseInt(supplierId), // Asegurar que sea número
-        
         images: imagesURLs.length
           ? { create: imagesURLs.map(url => ({ url })) }
           : undefined
       },
       include: {
         images: true,
-        supplier: true // Incluir proveedor en la respuesta
       }
     });
 
@@ -73,7 +57,7 @@ export const crearProducto = async (req, res) => {
     console.error("Error detallado:", error);
     return res.status(500).json({ 
       message: "Error al crear producto",
-      error: error.message // Más detalles del error
+      error: error.message
     });
   }
 };
@@ -95,7 +79,6 @@ export const actualizarProducto = async (req, res) => {
       category,
       brand,
       discount,
-      supplierId,
     } = req.body;
 
     // req.files son las nuevas imágenes subidas
@@ -115,7 +98,6 @@ export const actualizarProducto = async (req, res) => {
         category,
         brand,
         discount: discount ? Number(discount) : undefined,
-        supplierId: supplierId ? Number(supplierId) : undefined,
       },
     });
 
@@ -149,7 +131,6 @@ export const actualizarProducto = async (req, res) => {
       include: { 
         images: true, 
         // Eliminado: compatibilities 
-        supplier: true 
       },
     });
 
@@ -208,7 +189,6 @@ export const obtenerProductoPorId = async (req, res) => {
       include: {
         images: true,
         // Eliminado: compatibilities
-        supplier: true,
       },
     });
 
