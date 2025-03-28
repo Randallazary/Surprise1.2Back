@@ -72,10 +72,12 @@ app.use(
       connectSrc: [
         "'self'",
         "http://localhost:4000",
+        "http://localhost:3000",
         "https://api.pwnedpasswords.com",
         "https://www.google.com",
         "https://www.gstatic.com",
-        "https://surprise1-2-back.vercel.app/api"
+        "https://surprise1-2.vercel.app",
+        "https://surprise1-2-back.vercel.app"
 
       ],
 
