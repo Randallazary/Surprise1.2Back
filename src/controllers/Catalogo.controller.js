@@ -136,4 +136,4 @@ export const getProductDetails = async (req, res) => {
 };
 
 // ELIMINA ESTA LÍNEA (es redundante):
-// export { getCatalogo, getProductDetails };
+ export { getCatalogo, getProductDetails };
