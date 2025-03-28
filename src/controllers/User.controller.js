@@ -256,7 +256,7 @@ export const signUp = async (req, res) => {
         });
       } catch (error) {
         console.error("Error en login:", error);
-        return res.status(500).json({ message: "Error interno del servidor" });
+        return res.status(500).json({ message: "Error interno del servidor",error });
       }
     };
 
