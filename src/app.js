@@ -17,7 +17,6 @@ import producto from './routes/Producto.route.js';
 import catalogo from './routes/Catalogo.routes.js';
 import descuento from './routes/Descuentos.routes.js';
 import contactanos from './routes/Contactanos.routes.js';
-import Faq from './routes/Faq.routes.js';
 
 
 // Configuración de CORS para producción
@@ -139,7 +138,6 @@ app.use('/api/productos', producto);
 app.use('/api/catalogo', catalogo);
 app.use('/api/descuento', descuento);
 app.use('/api/contactanos', contactanos);
-app.use('/api/faq', Faq); // Corregido el punto extra
 
 
 app.get('/', (req, res) => {
