@@ -24,7 +24,7 @@ import Faq from './routes/Faq.routes.js';
 // Configuración de CORS para producción
 const listWhite = [
   'http://localhost:3000',  // Frontend en desarrollo
-  'https://surprise1-2.vercel.app', // Frontend correcto en producción
+  //'https://surprise1-2.vercel.app', // Frontend correcto en producción
 ];
 
 const corsOptions = {
@@ -109,7 +109,14 @@ app.use((req, res, next) => {
 });
 
 // Otros middlewares
-app.use(cors(corsOptions));
+app.use(cors({
+  //Pruebas
+  origin: ['http://localhost:3000', 'https://surprise1-2.vercel.ap'],
+  // origin: 'http://localhost:5173',
+  credentials:true
+}));
+
+//app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
