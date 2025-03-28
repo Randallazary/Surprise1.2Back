@@ -75,7 +75,8 @@ app.use(
         "https://www.google.com",
         "https://www.gstatic.com",
         "https://surprise1-2.vercel.app",
-        "https://surprise1-2-back.vercel.app"
+        "https://surprise1-2-back.vercel.app",
+        "https://surprise1-2back.onrender.com"
 
       ],
 
