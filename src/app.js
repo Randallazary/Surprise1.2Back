@@ -108,12 +108,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// Otros middlewares
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://surprise1-2.vercel.app'
+];
+
 app.use(cors({
-  //Pruebas
-  origin: ['http://localhost:3000', 'https://surprise1-2.vercel.ap'],
-  // origin: 'http://localhost:5173',
-  credentials:true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 
 //app.use(cors(corsOptions));
