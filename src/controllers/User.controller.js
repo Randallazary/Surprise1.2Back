@@ -10,7 +10,7 @@ const SECRET = process.env.SECRET || 'super-secret-key'; // ⚠️ No almacenar 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOGIN_TIMEOUT = 1 * 60 * 1000;
 
-// 🔓 Registro de usuario y verificación de cuenta
+//Registro de usuario y verificación de cuenta
 export const signUp = async (req, res) => {
     try {
       const { 
@@ -24,19 +24,19 @@ export const signUp = async (req, res) => {
         password 
       } = req.body;
   
-      // ✅ Validaciones básicas para evitar datos inválidos o incompletos
+      //Validaciones para evitar datos inválidos o incompletos
       if (!name || !lastname || name.length < 2 || lastname.length < 2) {
         return res.status(400).json({ message: "Datos incompletos o inválidos" });
       }
-      // 📅 Verificar si el correo ya está registrado para evitar duplicados
+      //Verificar si el correo ya está registrado para evitar duplicados
       const existingUser = await prisma.usuarios.findUnique({ where: { email } });
       if (existingUser)  {
         return res.status(400).json({ message: "El correo ya existe" });
       }  
-      // 🔑 Hashear la contraseña antes de guardarla (bcrypt con salt)
+      //Hashear la contraseña antes de guardarla (bcrypt con salt)
       const hashedPassword = await bcrypt.hash(password, 10);
   
-      // 🔒 Generar un token de verificación con expiración segura
+      //Generar un token de verificación con expiración segura
       const token = jwt.sign({ email }, SECRET, { expiresIn: '1h' });
   
       // 💌 Enviar correo de verificación con enlace único

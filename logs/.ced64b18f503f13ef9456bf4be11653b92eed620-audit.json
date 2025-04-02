@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "D:\\Documents\\BackSprice\\logs\\.ced64b18f503f13ef9456bf4be11653b92eed620-audit.json",
+    "files": [
+        {
+            "date": 1743542693580,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-04-01.log",
+            "hash": "b0c0bac673bb744b5082946ab015bd3f843e9f65d897adca2c8702a346e93f19"
+        }
+    ],
+    "hashType": "sha256"
+}

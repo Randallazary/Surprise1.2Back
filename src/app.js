@@ -2,12 +2,11 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import helmet from 'helmet'; // Asegúrate de importar helmet
-import path from 'path'; // Asegúrate de importar path
-import crypto from 'crypto'; // Importa el módulo de crypto
+import helmet from 'helmet';
+import path from 'path';
+import logger from './utils/logger.js'; // Importación corregida
 
-
-// Importación de las rutas desde src/routes
+// Importación de rutas
 import user from './routes/User.routes.js';
 import politicas from './routes/Politicas.routes.js';
 import terminos from './routes/Terminos.routes.js';
@@ -18,100 +17,60 @@ import catalogo from './routes/Catalogo.routes.js';
 import descuento from './routes/Descuentos.routes.js';
 import contactanos from './routes/Contactanos.routes.js';
 
-
-// Configuración de CORS para producción
-const listWhite = [
-  'http://localhost:3000',  // Frontend en desarrollo
-  'https://surprise1-2.vercel.app', // Frontend correcto en producción
+// Configuración CORS
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://surprise1-2.vercel.app',
+  'https://surprisewebapp.netlify.app'
 ];
-
-const corsOptions = {
-  origin: listWhite,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token', 'x-access-notification'],
-};
 
 const app = express();
 
-// --- Seguridad: Evitar divulgación de información interna ---
+// ==================== CONFIGURACIÓN DE SEGURIDAD ====================
 app.disable('x-powered-by');
 
-// Anti-Clickjacking: impide que la app se cargue en iframes de otros dominios
+// Protección básica con Helmet
+app.use(helmet());
 app.use(helmet.frameguard({ action: 'deny' }));
 
-
-
-
+// CSP Config
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-
       scriptSrc: [
         "'self'",
-        "'nonce-randomString'", // Usa un nonce dinámico en cada respuesta
+        "'unsafe-inline'",
         "https://www.google.com",
-        "https://www.gstatic.com",
-        "https://www.recaptcha.net"
+        "https://www.gstatic.com"
       ],
-
       styleSrc: [
         "'self'",
+        "'unsafe-inline'",
         "https://fonts.googleapis.com"
       ],
-
       imgSrc: [
         "'self'",
         "data:",
         "https://res.cloudinary.com"
       ],
-
       connectSrc: [
         "'self'",
-        "http://localhost:4000",
-        "http://localhost:3000",
-        "https://api.pwnedpasswords.com",
-        "https://www.google.com",
-        "https://www.gstatic.com",
-        "https://surprise1-2.vercel.app",
-        "https://surprise1-2-back.vercel.app",
-        "https://surprise1-2back.onrender.com"
-
+        ...allowedOrigins
       ],
-
       fontSrc: [
         "'self'",
         "https://fonts.gstatic.com"
       ],
-
-      objectSrc: ["'none'"],
-
       frameSrc: [
         "'self'",
-        "https://www.google.com",
-        "https://www.gstatic.com"
+        "https://www.google.com"
       ]
-    },
+    }
   })
 );
 
-
-
-// Agrega el header X-Content-Type-Options para evitar sniffing
-app.use(helmet.noSniff());
-
-// --- Control de Caché: evitar almacenamiento de información sensible ---
-app.use((req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  next();
-});
-
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://surprise1-2.vercel.app'
-];
-
+// ==================== MIDDLEWARES ====================
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -120,16 +79,20 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-//app.use(cors(corsOptions));
-//app.options('*', cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan('dev'));
 
-// Rutas
+// Logger middleware (importado desde utils/logger.js)
+app.use(logger);
+
+// ==================== RUTAS ====================
 app.use('/api/auth', user);
 app.use('/api/docs', politicas);
 app.use('/api/docs', terminos);
@@ -140,15 +103,32 @@ app.use('/api/catalogo', catalogo);
 app.use('/api/descuento', descuento);
 app.use('/api/contactanos', contactanos);
 
-
+// Ruta de prueba
 app.get('/', (req, res) => {
-  res.json({ msg: "Bienvenido a la API de tu proyecto" });
+  res.json({ 
+    status: 'active',
+    message: 'Backend operativo',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Manejo de rutas no encontradas (404)
-app.use((req, res, next) => {
-  res.status(404).sendFile(path.join(process.cwd(), 'public', '404.jpg'));
+// ==================== MANEJO DE ERRORES ====================
+// 404 - Ruta no encontrada
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Endpoint no encontrado',
+    path: req.path,
+    method: req.method
+  });
 });
 
+// Error handler global
+app.use((err, req, res, next) => {
+  console.error('Error global:', err.stack);
+  res.status(500).json({
+    error: 'Error interno del servidor',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Ocurrió un error'
+  });
+});
 
 export default app;
