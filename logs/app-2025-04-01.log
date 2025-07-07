@@ -1,8 +1,0 @@
-2025-04-01 15:25:00 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/auth/check-session","status":401,"duration":"11ms","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
-2025-04-01 15:25:00 [ERROR] HTTP Request Error | {"method":"GET","url":"/api/logo/ultimo","status":500,"duration":"44ms","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
-2025-04-01 15:25:08 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/auth/check-session","status":401,"duration":"1ms","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
-2025-04-01 15:25:08 [ERROR] HTTP Request Error | {"method":"GET","url":"/api/logo/ultimo","status":500,"duration":"6ms","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
-2025-04-01 15:26:16 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/auth/check-session","status":401,"duration":"3ms","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
-2025-04-01 15:26:16 [ERROR] HTTP Request Error | {"method":"GET","url":"/api/logo/ultimo","status":500,"duration":"12ms","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
-2025-04-01 15:26:19 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/auth/check-session","status":401,"duration":"3ms","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
-2025-04-01 15:26:19 [ERROR] HTTP Request Error | {"method":"GET","url":"/api/logo/ultimo","status":500,"duration":"20ms","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}

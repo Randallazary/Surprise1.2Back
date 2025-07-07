@@ -6,9 +6,24 @@
     "auditLog": "D:\\Documents\\BackSprice\\logs\\.ced64b18f503f13ef9456bf4be11653b92eed620-audit.json",
     "files": [
         {
-            "date": 1743542693580,
-            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-04-01.log",
-            "hash": "b0c0bac673bb744b5082946ab015bd3f843e9f65d897adca2c8702a346e93f19"
+            "date": 1750368665782,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-06-19.log",
+            "hash": "eac76f3ff348c02f48f4cdb0bbbf19af6b03c17ca65ab001b5e4cb6c3154f5dd"
+        },
+        {
+            "date": 1750825452962,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-06-24.log",
+            "hash": "40601dee49f2fc264856379c1f300ba55b98d47b0fc3771f8482917cfd2be12a"
+        },
+        {
+            "date": 1750884405182,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-06-25.log",
+            "hash": "1da52d9bba661de1dad5ca38908a6951f45b0b20280a7f3cd2296d776fe9bd6a"
+        },
+        {
+            "date": 1751846808844,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-06.log",
+            "hash": "3b9699235a23e41f94941172cd1d54fd1274c4130c0e658b1a02c2acdcac38d4"
         }
     ],
     "hashType": "sha256"

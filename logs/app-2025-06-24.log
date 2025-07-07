@@ -1,0 +1,10 @@
+2025-06-24 22:29:41 [INFO] HTTP Request Success | {"method":"GET","url":"/","status":200,"duration":"4ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:29:42 [WARN] HTTP Request Warning | {"method":"GET","url":"/favicon.ico","status":404,"duration":"1ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:32:27 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/reloj/inventario","status":404,"duration":"1ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:32:36 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/reloj/","status":404,"duration":"0ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:32:40 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/reloj/","status":404,"duration":"2ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:32:45 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/reloj/","status":404,"duration":"1ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:32:46 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/reloj/","status":404,"duration":"1ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:32:53 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/reloj/","status":404,"duration":"2ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:32:53 [WARN] HTTP Request Warning | {"method":"GET","url":"/favicon.ico","status":404,"duration":"1ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-06-24 22:33:12 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/reloj/pedidos","status":400,"duration":"1ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}

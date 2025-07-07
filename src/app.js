@@ -16,12 +16,15 @@ import producto from './routes/Producto.route.js';
 import catalogo from './routes/Catalogo.routes.js';
 import descuento from './routes/Descuentos.routes.js';
 import contactanos from './routes/Contactanos.routes.js';
+import reloj from './routes/Reloj.routes.js';
+
 
 // Configuración CORS
 const allowedOrigins = [
   'http://localhost:3000',
   'https://surprise1-2.vercel.app',
-  'https://surprisewebapp.netlify.app'
+  'https://surprisewebapp.netlify.app',
+  'http://10.0.2.16' // Emulador de Android
 ];
 
 const app = express();
@@ -102,6 +105,8 @@ app.use('/api/productos', producto);
 app.use('/api/catalogo', catalogo);
 app.use('/api/descuento', descuento);
 app.use('/api/contactanos', contactanos);
+app.use('/api/reloj', reloj);
+
 
 // Ruta de prueba
 app.get('/', (req, res) => {

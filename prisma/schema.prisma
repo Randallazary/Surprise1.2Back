@@ -1,10 +1,10 @@
-generator client {
-  provider = "prisma-client-js"
+datasource db {
+  provider = "mysql" 
+  url      = env("DATABASE_URL")  
 }
 
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+generator client {
+  provider = "prisma-client-js"
 }
 
 model Usuarios {
@@ -18,7 +18,7 @@ model Usuarios {
   respuestaSecreta    String
   password            String
   verified            Boolean         @default(false)
-  role                String          @default("normal") // en vez de enum
+  role                String          @default("normal")
   failedLoginAttempts Int             @default(0)
   lockedUntil         DateTime?
   blocked             Boolean         @default(false)
@@ -27,39 +27,74 @@ model Usuarios {
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
 
-  // Relación 1:N con LoginHistory
+  cart    Cart?   @relation(fields: [cartId], references: [id])
+  cartId  Int?    @unique
   loginHistories      LoginHistory[]
+  pedidos Pedido[]
 }
 
 model LoginHistory {
   id         Int       @id @default(autoincrement())
   loginDate  DateTime  @default(now())
-  
   userId     Int
   usuarios   Usuarios  @relation(fields: [userId], references: [id])
 }
 
-
 model Productos {
-  id           Int      @id @default(autoincrement())
-  name         String   @db.VarChar(100)
-  description  String   @db.VarChar(500)
-  price        Float    @default(0)
-  stock        Int      @default(0)
+  id           Int           @id @default(autoincrement())
+  name         String        // MySQL no necesita @db.VarChar, usa String directamente
+  description  String
+  price        Float         @default(0)
+  stock        Int           @default(0)
+  partNumber   String        @unique
   category     String
   brand        String
-  discount     Float?   @default(0)
-  
+  discount     Float?        @default(0)
   images       Imagenes[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  sales        Sales[]
+  cartItems    CartItem[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  pedidoItems PedidoItem[]
+ 
+}
+
+model Cart {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  usuarios  Usuarios?
+  items     CartItem[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model CartItem {
+  id          Int       @id @default(autoincrement())
+  cart        Cart      @relation(fields: [cartId], references: [id])
+  cartId      Int
+  product     Productos @relation(fields: [productId], references: [id])
+  productId   Int
+  quantity    Int       @default(1)
+  addedAt     DateTime  @default(now())
+  @@unique([cartId, productId])
 }
 
 model Imagenes {
-  id         Int    @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   url        String
   productId  Int
   producto   Productos @relation(fields: [productId], references: [id])
+}
+
+model Sales {
+  id          Int       @id @default(autoincrement())
+  productId   Int
+  product     Productos @relation(fields: [productId], references: [id])
+  quantity    Int       @default(1)
+  salePrice   Float
+  total       Float
+  saleDate    DateTime  @default(now())
+  customerId  Int?
 }
 
 model Logos {
@@ -67,7 +102,6 @@ model Logos {
   url         String
   fechaSubida DateTime @default(now())
   autor       String
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -75,7 +109,7 @@ model Logos {
 model TerminosYCondiciones {
   id            Int      @id @default(autoincrement())
   title         String
-  content       String   @db.Text
+  content       String
   effectiveDate DateTime
   isCurrent     Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -85,7 +119,7 @@ model TerminosYCondiciones {
 model PoliticasDePrivacidad {
   id            Int      @id @default(autoincrement())
   title         String
-  content       String   @db.Text
+  content       String
   effectiveDate DateTime
   isCurrent     Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -95,9 +129,36 @@ model PoliticasDePrivacidad {
 model DeslindeDeResponsabilidad {
   id            Int      @id @default(autoincrement())
   title         String
-  content       String   @db.Text
+  content       String
   effectiveDate DateTime
   isCurrent     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Pedido {
+  id         Int       @id @default(autoincrement())
+  clienteId  Int
+  estado     EstadoPedido @default(EN_PROCESO)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  cliente    Usuarios   @relation(fields: [clienteId], references: [id])
+  items      PedidoItem[]
+}
+
+model PedidoItem {
+  id         Int       @id @default(autoincrement())
+  pedido     Pedido    @relation(fields: [pedidoId], references: [id])
+  pedidoId   Int
+  producto   Productos @relation(fields: [productoId], references: [id])
+  productoId Int
+  cantidad   Int
+}
+
+enum EstadoPedido {
+  EN_PROCESO
+  EN_CAMINO
+  ENTREGADO
+}
+

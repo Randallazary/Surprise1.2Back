@@ -3,64 +3,71 @@ const prisma = new PrismaClient();
 
 /**
  * Crear un nuevo producto con imágenes subidas a Cloudinary
- */
-export const crearProducto = async (req, res) => {
+ */ export const crearProducto = async (req, res) => {
   try {
     const {
       name,
       description,
       price,
       stock,
+      partNumber,
       category,
-      brand,
+ 
       discount,
+     
     } = req.body;
 
-    // Validación mejorada
-    if (!name || !category) {
-      return res.status(400).json({ 
-        message: "Nombre y categoría son campos obligatorios." 
-      });
-    }
-
-    // Manejo de imágenes
+    // 📌 Manejo de imágenes (Cloudinary)
     let imagesURLs = [];
     if (req.files && req.files.length > 0) {
       imagesURLs = req.files.map((file) => file.path);
     }
 
-    // Crear el producto
+    // 📌 Crear el producto
     const newProduct = await prisma.productos.create({
       data: {
         name,
         description: description || "",
-        price: price ? parseFloat(price) : 0,
-        stock: stock ? parseInt(stock) : 0,
+        price: price ? Number(price) : 0,
+        stock: stock ? Number(stock) : 0,
+        partNumber,
         category,
-        brand: brand || "",
-        discount: discount ? parseFloat(discount) : 0,
+
+        discount: discount ? Number(discount) : 0,
+
         images: imagesURLs.length
-          ? { create: imagesURLs.map(url => ({ url })) }
-          : undefined
+          ? { create: imagesURLs.map((url) => ({ url })) }
+          : undefined,
+
+        // ✅ Solo agregar compatibilidad si hay datos
+        compatibilities:
+          parsedMakes.length > 0
+            ? {
+                create: parsedMakes.map((make, index) => ({
+                  make,
+                  model: parsedModels[index] || null, // Asignar null si no hay modelo
+                  year: parsedYearsAsNumbers[index] || null, // Asignar null si no hay año
+                  engineType: null, // Puedes agregar este campo si es necesario
+                })),
+              }
+            : undefined, // No intenta crear compatibilidad si no hay datos
       },
       include: {
         images: true,
-      }
+        compatibilities: true,
+      },
     });
 
     return res.status(201).json({
       message: "Producto creado exitosamente",
-      product: newProduct
+      product: newProduct,
     });
-
   } catch (error) {
-    console.error("Error detallado:", error);
-    return res.status(500).json({ 
-      message: "Error al crear producto",
-      error: error.message
-    });
+    console.error("Error al crear el producto:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
 
 /**
  * Actualizar un producto (incluyendo subida de imágenes a Cloudinary)
@@ -70,83 +77,118 @@ export const actualizarProducto = async (req, res) => {
     const { id } = req.params;
     const numericId = Number(id);
 
-    // Extraer campos del body (eliminadas compatibilities)
+    // Extraer campos del body
     const {
       name,
       description,
       price,
       stock,
+      partNumber,
       category,
-      brand,
+      
       discount,
+     
+      removeOldImages,
+      removeOldCompat,
     } = req.body;
 
-    // req.files son las nuevas imágenes subidas
+    
+
+
+    // Manejo de imágenes
     let newImagesURLs = [];
     if (req.files && req.files.length > 0) {
       newImagesURLs = req.files.map((file) => file.path);
     }
 
-    // 1. Actualizar los campos básicos del producto
-    const updatedProduct = await prisma.productos.update({
-      where: { id: numericId },
-      data: {
-        name,
-        description,
-        price: price ? Number(price) : undefined,
-        stock: stock ? Number(stock) : undefined,
-        category,
-        brand,
-        discount: discount ? Number(discount) : undefined,
-      },
-    });
-
-    if (!updatedProduct) {
-      return res.status(404).json({ message: "Producto no encontrado." });
-    }
-
-    // 2. Manejo de imágenes
-    if (
-      typeof req.body.removeOldImages !== "undefined" &&
-      req.body.removeOldImages === "true"
-    ) {
-      await prisma.imagenes.deleteMany({ where: { productId: numericId } });
-    }
-
-    // Crear las nuevas imágenes
-    if (newImagesURLs.length > 0) {
-      await prisma.imagenes.createMany({
-        data: newImagesURLs.map((url) => ({
-          url,
-          productId: numericId,
-        })),
+        // Transacción para asegurar la consistencia de los datos
+    const updatedProduct = await prisma.$transaction(async (prisma) => {
+      // 1. Actualizar los campos básicos del producto
+      const product = await prisma.productos.update({
+        where: { id: numericId },
+        data: {
+          name,
+          description: description || undefined,
+          price: price ? Number(price) : undefined,
+          stock: stock ? Number(stock) : undefined,
+          partNumber,
+          category,
+          
+          // Manejo especial para discount:
+          discount: discount !== undefined ? 
+                   (discount !== null ? Number(discount) : null) : 
+                   undefined,
+        },
       });
-    }
 
-    // 3. Eliminado: Manejo de compatibilidades
+      if (!product) {
+        throw new Error("Producto no encontrado");
+      }
 
-    // 4. Retornar el producto con sus relaciones actualizadas
-    const productWithRelations = await prisma.productos.findUnique({
-      where: { id: numericId },
-      include: { 
-        images: true, 
-        // Eliminado: compatibilities 
-      },
+      // 2. Manejo de imágenes
+      if (removeOldImages === "true") {
+        await prisma.imagenes.deleteMany({ 
+          where: { productId: numericId } 
+        });
+      }
+
+      if (newImagesURLs.length > 0) {
+        await prisma.imagenes.createMany({
+          data: newImagesURLs.map((url) => ({
+            url,
+            productId: numericId,
+          })),
+        });
+      }
+
+      // 3. Manejo de compatibilidades
+      if (parsedMakes.length > 0) {
+        // Eliminar compatibilidades existentes
+        await prisma.compatibilidad.deleteMany({
+          where: { productId: numericId },
+        });
+
+        // Crear nuevas compatibilidades
+        await prisma.compatibilidad.createMany({
+          data: parsedMakes.map((make, index) => ({
+            make,
+            model: parsedModels[index] || null,
+            year: parsedYearsAsNumbers[index] || null,
+            engineType: null,
+            productId: numericId,
+          })),
+        });
+      } else if (removeOldCompat === "true") {
+        await prisma.compatibilidad.deleteMany({
+          where: { productId: numericId },
+        });
+      }
+
+      // Obtener el producto actualizado con relaciones
+      return await prisma.productos.findUnique({
+        where: { id: numericId },
+        include: { 
+          images: true, 
+          compatibilities: true 
+        },
+      });
     });
 
     res.status(200).json({
       message: "Producto actualizado exitosamente",
-      product: productWithRelations,
+      product: updatedProduct,
     });
   } catch (error) {
     console.error("Error al actualizar producto:", error);
-    if (error.code === "P2025") {
+    if (error.message === "Producto no encontrado" || error.code === "P2025") {
       return res.status(404).json({ message: "Producto no encontrado." });
     }
-    res.status(500).json({ message: "Error interno del servidor" });
+    res.status(500).json({ 
+      message: "Error interno del servidor",
+      error: error.message 
+    });
   }
 };
-
 /**
  * Eliminar un producto
  */
@@ -155,24 +197,57 @@ export const eliminarProducto = async (req, res) => {
     const { id } = req.params;
     const numericId = Number(id);
 
-    // Verificar si existe
-    const existingProduct = await prisma.productos.findUnique({
-      where: { id: numericId },
-    });
-    if (!existingProduct) {
-      return res.status(404).json({ message: "Producto no encontrado." });
+    if (isNaN(numericId)) {
+      return res.status(400).json({ message: "ID de producto no válido" });
     }
 
-    // Borrar imágenes (las compatibilidades ya no existen)
-    await prisma.imagenes.deleteMany({ where: { productId: numericId } });
+    // Usar transacción para asegurar la integridad de los datos
+    await prisma.$transaction(async (prisma) => {
+      // 1. Verificar si el producto existe
+      const existingProduct = await prisma.productos.findUnique({
+        where: { id: numericId },
+        include: {
+          images: true,
+          compatibilities: true,
+          sales: true,
+          cartItems: true,
+          pedidoItems: true,
+        
+        }
+      });
 
-    // Luego eliminar el producto
-    await prisma.productos.delete({ where: { id: numericId } });
+      if (!existingProduct) {
+        throw { code: "P2025", message: "Producto no encontrado" };
+      }
 
-    res.status(200).json({ message: "Producto eliminado exitosamente." });
+      // 2. Eliminar todas las relaciones en el orden correcto
+      // Primero las más dependientes (items de carrito, favoritos, etc.)
+      await prisma.cartItem.deleteMany({ where: { productId: numericId } });
+     
+      await prisma.pedidoItem.deleteMany({ where: { productoId: numericId } });
+      await prisma.sales.deleteMany({ where: { productId: numericId } });
+      await prisma.imagenes.deleteMany({ where: { productId: numericId } });
+      await prisma.compatibility.deleteMany({ where: { productId: numericId } });
+
+      // 3. Finalmente eliminar el producto
+      await prisma.productos.delete({ where: { id: numericId } });
+    });
+
+    res.status(200).json({ 
+      message: "Producto y todas sus relaciones eliminadas exitosamente" 
+    });
+
   } catch (error) {
     console.error("Error al eliminar producto:", error);
-    res.status(500).json({ message: "Error interno del servidor" });
+    
+    if (error.code === "P2025") {
+      return res.status(404).json({ message: error.message });
+    }
+    
+    res.status(500).json({ 
+      message: "Error interno del servidor",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined
+    });
   }
 };
 
@@ -188,7 +263,8 @@ export const obtenerProductoPorId = async (req, res) => {
       where: { id: numericId },
       include: {
         images: true,
-        // Eliminado: compatibilities
+        compatibilities: true,
+        supplier: true,
       },
     });
 
@@ -203,98 +279,80 @@ export const obtenerProductoPorId = async (req, res) => {
   }
 };
 
-// Obtener todos los productos con filtros
 export const obtenerTodosLosProductos = async (req, res) => {
-  const { search, categoria, minPrecio, maxPrecio, page = 1, pageSize = 10 } = req.query;
+  const { 
+    search, 
+    categoria, 
+    minPrecio, 
+    maxPrecio, 
+    page = 1, 
+    pageSize = 10,
+    includeFavorites = 'false' // Valor por defecto false
+  } = req.query;
 
-  // Validar que page y pageSize sean números válidos
+  // Validación
   const pageNumber = parseInt(page, 10);
   const pageSizeNumber = parseInt(pageSize, 10);
-
   if (isNaN(pageNumber) || isNaN(pageSizeNumber) || pageNumber < 1 || pageSizeNumber < 1) {
     return res.status(400).json({ message: "Parámetros de paginación inválidos." });
   }
 
   try {
-    // Obtener el número total de productos (para paginación)
-    const totalProductos = await prisma.productos.count({
-      where: {
-        OR: [
-          {
-            name: {
-              contains: search || "",
-            },
-          },
-          {
-            description: {
-              contains: search || "",
-            },
-          },
-          {
-            category: {
-              contains: search || "",
-            },
-          },
-        ],
-        category: categoria ? { equals: categoria } : undefined,
-        price: {
-          gte: minPrecio ? parseFloat(minPrecio) : undefined,
-          lte: maxPrecio ? parseFloat(maxPrecio) : undefined,
-        },
+    // Configuración base
+    const whereConditions = {
+      OR: [
+        { name: { contains: search || "" } },
+        { description: { contains: search || "" } },
+        { category: { contains: search || "" } }
+      ],
+      category: categoria ? { equals: categoria } : undefined,
+      price: {
+        gte: minPrecio ? parseFloat(minPrecio) : undefined,
+        lte: maxPrecio ? parseFloat(maxPrecio) : undefined,
       },
-    });
+    };
 
-    // Obtener los productos paginados
-    const productos = await prisma.productos.findMany({
-      where: {
-        OR: [
-          {
-            name: {
-              contains: search || "",
-            },
-          },
-          {
-            description: {
-              contains: search || "",
-            },
-          },
-          {
-            category: {
-              contains: search || "",
-            },
-          },
-        ],
-        category: categoria ? { equals: categoria } : undefined,
-        price: {
-          gte: minPrecio ? parseFloat(minPrecio) : undefined,
-          lte: maxPrecio ? parseFloat(maxPrecio) : undefined,
-        },
-      },
+    // Conteo total
+    const totalProductos = await prisma.productos.count({ where: whereConditions });
+
+    // Configuración de consulta
+    const queryOptions = {
+      where: whereConditions,
       skip: (pageNumber - 1) * pageSizeNumber,
       take: pageSizeNumber,
       include: {
         images: true,
-        // Eliminado: compatibilities
-      },
-    });
+        compatibilities: true,
+        ...(includeFavorites === 'true' ? {
+          favoritos: req.userId ? {
+            where: { userId: req.userId },
+            select: { id: true }
+          } : undefined
+        } : {})
+      }
+    };
 
-    // Respuesta con información de paginación
-    res.status(200).json({
-      productos,
-      paginacion: {
-        paginaActual: pageNumber,
-        totalPaginas: Math.ceil(totalProductos / pageSizeNumber),
-        totalProductos,
-      },
-    });
+    // Ejecución de consulta
+    const productos = await prisma.productos.findMany(queryOptions);
+
+  
+
+
   } catch (error) {
-    console.error("Error al obtener productos:", error);
-    res.status(500).json({ message: "Error interno del servidor" });
+    console.error("Error en obtenerTodosLosProductos:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Error interno del servidor",
+      ...(process.env.NODE_ENV === 'development' && { 
+        error: error.message,
+        stack: error.stack 
+      })
+    });
   }
 };
 
 export const obtenerProductosAleatorios = async (req, res) => {
-  const { cantidad = 5 } = req.query;
+  const { cantidad = 5 } = req.query; // Cantidad de productos aleatorios a obtener (por defecto 5)
 
   try {
     // Obtener el número total de productos
@@ -320,14 +378,37 @@ export const obtenerProductosAleatorios = async (req, res) => {
         id: { in: idsAleatorios },
       },
       include: {
-        images: true,
-        // Eliminado: compatibilities
+        images: true, // Incluir imágenes
+        compatibilities: true, // Incluir compatibilidades
       },
     });
 
     res.status(200).json(productosAleatorios);
   } catch (error) {
     console.error("Error al obtener productos aleatorios:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+
+
+export const obtenerProductosConDescuento = async (req, res) => {
+  try {
+    const productosConDescuento = await prisma.productos.findMany({
+      where: {
+        discount: {
+          gt: 0, // Solo productos con descuento mayor a 0
+        },
+      },
+      include: {
+        images: true,
+        compatibilities: true,
+      },
+    });
+
+    res.status(200).json(productosConDescuento);
+  } catch (error) {
+    console.error("Error al obtener productos con descuento:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
