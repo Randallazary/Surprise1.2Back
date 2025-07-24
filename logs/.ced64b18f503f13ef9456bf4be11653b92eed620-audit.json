@@ -6,11 +6,6 @@
     "auditLog": "D:\\Documents\\BackSprice\\logs\\.ced64b18f503f13ef9456bf4be11653b92eed620-audit.json",
     "files": [
         {
-            "date": 1750368665782,
-            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-06-19.log",
-            "hash": "eac76f3ff348c02f48f4cdb0bbbf19af6b03c17ca65ab001b5e4cb6c3154f5dd"
-        },
-        {
             "date": 1750825452962,
             "name": "D:\\Documents\\BackSprice\\logs\\app-2025-06-24.log",
             "hash": "40601dee49f2fc264856379c1f300ba55b98d47b0fc3771f8482917cfd2be12a"
@@ -24,6 +19,46 @@
             "date": 1751846808844,
             "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-06.log",
             "hash": "3b9699235a23e41f94941172cd1d54fd1274c4130c0e658b1a02c2acdcac38d4"
+        },
+        {
+            "date": 1751868354596,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-07.log",
+            "hash": "4e0afb40a011ae410d658739c5da6265d247abeaa882c926f717d39c0a0d8b97"
+        },
+        {
+            "date": 1751954511072,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-08.log",
+            "hash": "a987916100180a2c04d7cce2c96a6a235b77c4daa7dadee53124f6e39613ac5b"
+        },
+        {
+            "date": 1752090752387,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-09.log",
+            "hash": "59231f01104ffa9bce7534bda08d4ea399e10facfbc9498cfa1adea161ef308f"
+        },
+        {
+            "date": 1753064436123,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-20.log",
+            "hash": "0b7d1a643789daed45dce01e250cd2a51e04dee7909485ec627c32eedcf355c6"
+        },
+        {
+            "date": 1753132148101,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-21.log",
+            "hash": "b15eb841013029222195b6afa7c23073662426b6a36194951f590abaf1bde9b2"
+        },
+        {
+            "date": 1753184069561,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-22.log",
+            "hash": "c5d75a05d0e7bc5dd61c85addabb5d1cf02b3920cba9f0c0ac53af0ae6dc00f4"
+        },
+        {
+            "date": 1753331494972,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-23.log",
+            "hash": "edffccbdf132b1450f4b2fcdccc17a4e7e99d3064977d454ea50d21a2cc93daa"
+        },
+        {
+            "date": 1753336860023,
+            "name": "D:\\Documents\\BackSprice\\logs\\app-2025-07-24.log",
+            "hash": "e4ea83d27100be66fe5da40273db5c5a4f29a79ed8c647641e8b76d2f348d9dc"
         }
     ],
     "hashType": "sha256"

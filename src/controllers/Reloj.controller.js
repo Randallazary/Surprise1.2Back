@@ -1,10 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+    import { PrismaClient } from "@prisma/client";
     const prisma = new PrismaClient();
 
-    /**
-     * Obtener pedidos filtrados por estado
-     * Ejemplo de query: /api/reloj/pedidos?estado=EN_PROCESO
-     */
+    
     export const obtenerPedidosPorEstado = async (req, res) => {
     try {
         const { estado } = req.query;

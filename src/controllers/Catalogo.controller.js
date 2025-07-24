@@ -45,7 +45,7 @@ export const getCatalogo = async (req, res) => {
                 description: true,
                 price: true,
                 category: true,
-                brand: true,
+               
                 discount: true,
                 images: {
                     select: {

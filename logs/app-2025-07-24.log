@@ -1,0 +1,2 @@
+2025-07-24 00:01:00 [INFO] HTTP Request Success | {"method":"GET","url":"/api/auth/check-session","status":304,"duration":"3ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-07-24 00:01:00 [WARN] HTTP Request Warning | {"method":"GET","url":"/api/logo/ultimo","status":404,"duration":"10ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}

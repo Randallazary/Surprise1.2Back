@@ -1,6 +1,6 @@
 datasource db {
-  provider = "mysql" 
-  url      = env("DATABASE_URL")  
+  provider = "mysql"  // Cambiado de sqlserver a mysql
+  url      = env("DATABASE_URL")  // Asegúrate de que tu .env apunte a MySQL
 }
 
 generator client {
@@ -27,10 +27,14 @@ model Usuarios {
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
 
+  
+  
   cart    Cart?   @relation(fields: [cartId], references: [id])
   cartId  Int?    @unique
   loginHistories      LoginHistory[]
   pedidos Pedido[]
+ 
+  direcciones  Direccion[]  // Relación inversa
 }
 
 model LoginHistory {
@@ -46,9 +50,7 @@ model Productos {
   description  String
   price        Float         @default(0)
   stock        Int           @default(0)
-  partNumber   String        @unique
   category     String
-  brand        String
   discount     Float?        @default(0)
   images       Imagenes[]
   sales        Sales[]
@@ -85,6 +87,7 @@ model Imagenes {
   productId  Int
   producto   Productos @relation(fields: [productId], references: [id])
 }
+
 
 model Sales {
   id          Int       @id @default(autoincrement())
@@ -137,24 +140,32 @@ model DeslindeDeResponsabilidad {
 }
 
 model Pedido {
-  id         Int       @id @default(autoincrement())
-  clienteId  Int
-  estado     EstadoPedido @default(EN_PROCESO)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id           Int           @id @default(autoincrement())
+  clienteId    Int
+  direccionId  Int           // ← NUEVO
+  estado       EstadoPedido  @default(EN_PROCESO)
+  total        Float
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
-  cliente    Usuarios   @relation(fields: [clienteId], references: [id])
-  items      PedidoItem[]
+  cliente      Usuarios      @relation(fields: [clienteId], references: [id])
+  direccion    Direccion     @relation(fields: [direccionId], references: [id])
+  items        PedidoItem[]
 }
+
 
 model PedidoItem {
-  id         Int       @id @default(autoincrement())
-  pedido     Pedido    @relation(fields: [pedidoId], references: [id])
-  pedidoId   Int
-  producto   Productos @relation(fields: [productoId], references: [id])
-  productoId Int
-  cantidad   Int
+  id           Int       @id @default(autoincrement())
+  pedido       Pedido    @relation(fields: [pedidoId], references: [id])
+  pedidoId     Int
+  producto     Productos @relation(fields: [productoId], references: [id])
+  productoId   Int
+  cantidad     Int
+  precioUnitario Float   // Precio del producto al momento de la compra
+  subtotal       Float   // precioUnitario * cantidad
 }
+
+
 
 enum EstadoPedido {
   EN_PROCESO
@@ -162,3 +173,17 @@ enum EstadoPedido {
   ENTREGADO
 }
 
+
+
+model Direccion {
+  id        Int       @id @default(autoincrement())
+  calle     String
+  numero    String
+  ciudad    String
+  estado    String
+  pais      String
+  cp        String
+  user      Usuarios? @relation(fields: [userId], references: [id])
+  userId    Int?
+  pedidos   Pedido[]
+}

@@ -17,6 +17,7 @@ import catalogo from './routes/Catalogo.routes.js';
 import descuento from './routes/Descuentos.routes.js';
 import contactanos from './routes/Contactanos.routes.js';
 import reloj from './routes/Reloj.routes.js';
+import carrito from './routes/Carrito.routes.js';
 
 
 // Configuración CORS
@@ -106,6 +107,7 @@ app.use('/api/catalogo', catalogo);
 app.use('/api/descuento', descuento);
 app.use('/api/contactanos', contactanos);
 app.use('/api/reloj', reloj);
+app.use('/api/carrito', carrito);
 
 
 // Ruta de prueba
