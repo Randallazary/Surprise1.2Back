@@ -3,7 +3,7 @@ const prisma = new PrismaClient()
 
 export const crearProducto = async (req, res) => {
   try {
-    const { name, description, price, stock, category, discount } = req.body
+    const { name, description, price, stock, category, discount, ocasion } = req.body
 
     // 📌 Validaciones básicas
     if (!name || !category) {
