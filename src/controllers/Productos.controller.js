@@ -1,51 +1,72 @@
 import { PrismaClient } from "@prisma/client"
+import { ocasionService } from '../../services/ocasion.service.js';
+
 const prisma = new PrismaClient()
+
 
 export const crearProducto = async (req, res) => {
   try {
-    const { name, description, price, stock, category, discount, ocasion } = req.body
+    const { name, description, price, stock, category, discount, ocasion } = req.body;
 
-    // 📌 Validaciones básicas
-    if (!name || !category) {
-      return res.status(400).json({
-        message: "Los campos name y category son obligatorios.",
-      })
+    // 1. Validación reforzada
+    if (!name?.trim() || !category?.trim()) {
+      return res.status(400).json({ 
+        error: "Nombre y categoría son obligatorios" 
+      });
     }
 
-    // 📌 Manejo de imágenes (Cloudinary)
-    let imagesURLs = []
-    if (req.files && req.files.length > 0) {
-      imagesURLs = req.files.map((file) => file.path)
-    }
-
-    // 📌 Crear el producto
-    const newProduct = await prisma.productos.create({
-      data: {
+    // 2. Clasificación automática (DEBUG)
+    let finalOccasion = ocasion?.trim();
+    if (!finalOccasion) {
+      console.log('[DEBUG] Iniciando clasificación automática...');
+      const classificationInput = {
         name: name.trim(),
         description: description?.trim() || "",
-        price: price ? Number(price) : 0,
-        stock: stock ? Number(stock) : 0,
-        category: category.trim(),
-        discount: discount ? Number(discount) : 0,
-        // 🔧 SOLUCIÓN TEMPORAL: Generar partNumber automáticamente
-       
+        category: category.trim()
+      };
+      console.log('[DEBUG] Datos para clasificación:', classificationInput);
+      
+      finalOccasion = await ocasionService.classifyProduct(classificationInput);
+      console.log('[DEBUG] Resultado de clasificación:', finalOccasion);
+    }
 
-        images: imagesURLs.length ? { create: imagesURLs.map((url) => ({ url })) } : undefined,
-      },
-      include: {
-        images: true,
-      },
-    })
+    // 3. Creación con valor por defecto explícito
+    const productData = {
+      name: name.trim(),
+      description: description?.trim() || "",
+      price: Number(price) || 0,
+      stock: Number(stock) || 0,
+      category: category.trim(),
+      discount: Number(discount) || 0,
+      ocasion: finalOccasion || 'General', // ¡Valor por defecto!
+      // ...otros campos
+    };
+
+    console.log('[DEBUG] Datos finales del producto:', productData);
+
+    const newProduct = await prisma.productos.create({
+      data: productData,
+      include: { images: true }
+    });
+
+    console.log('[DEBUG] Producto creado:', newProduct);
 
     return res.status(201).json({
-      message: "Producto creado exitosamente",
-      product: newProduct,
-    })
+      success: true,
+      product: newProduct
+    });
+
   } catch (error) {
-    console.error("Error al crear el producto:", error)
-    return res.status(500).json({ message: "Error interno del servidor" })
+    console.error('[ERROR] Detalles completos:', error);
+    return res.status(500).json({ 
+      error: "Error al crear producto",
+      ...(process.env.NODE_ENV === 'development' && {
+        details: error.message
+      })
+    });
   }
-}
+};
+
 
 export const actualizarProducto = async (req, res) => {
   try {
@@ -53,7 +74,7 @@ export const actualizarProducto = async (req, res) => {
     const numericId = Number(id)
 
     // Extraer campos del body
-    const { name, description, price, stock, category, discount, removeOldImages } = req.body
+    const { name, description, price, stock, category, discount, ocasion, removeOldImages } = req.body
 
     // Manejo de imágenes
     let newImagesURLs = []
@@ -72,6 +93,7 @@ export const actualizarProducto = async (req, res) => {
           price: price ? Number(price) : undefined,
           stock: stock ? Number(stock) : undefined,
           category: category?.trim(),
+          ocasion: ocasion?.trim() || undefined,
           discount: discount !== undefined ? (discount !== null ? Number(discount) : null) : undefined,
         },
       })
@@ -200,7 +222,16 @@ export const obtenerProductoPorId = async (req, res) => {
 }
 
 export const obtenerTodosLosProductos = async (req, res) => {
-  const { search, categoria, minPrecio, maxPrecio, page = 1, pageSize = 10, includeFavorites = "false" } = req.query
+  const { 
+    search, 
+    categoria, 
+    minPrecio, 
+    maxPrecio, 
+    ocasion, 
+    page = 1, 
+    pageSize = 10, 
+    includeFavorites = "false" 
+  } = req.query
 
   // Validación
   const pageNumber = Number.parseInt(page, 10)
@@ -218,6 +249,7 @@ export const obtenerTodosLosProductos = async (req, res) => {
         { category: { contains: search || "" } },
       ],
       category: categoria ? { equals: categoria } : undefined,
+      ocasion: ocasion ? { equals: ocasion } : undefined,
       price: {
         gte: minPrecio ? Number.parseFloat(minPrecio) : undefined,
         lte: maxPrecio ? Number.parseFloat(maxPrecio) : undefined,

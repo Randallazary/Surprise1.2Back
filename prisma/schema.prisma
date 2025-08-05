@@ -26,8 +26,6 @@ model Usuarios {
   lastLogin           DateTime?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
-
-  
   
   cart    Cart?   @relation(fields: [cartId], references: [id])
   cartId  Int?    @unique
@@ -51,6 +49,7 @@ model Productos {
   price        Float         @default(0)
   stock        Int           @default(0)
   category     String
+  ocasion      String?      
   discount     Float?        @default(0)
   images       Imagenes[]
   sales        Sales[]
@@ -87,7 +86,6 @@ model Imagenes {
   productId  Int
   producto   Productos @relation(fields: [productId], references: [id])
 }
-
 
 model Sales {
   id          Int       @id @default(autoincrement())
@@ -153,7 +151,6 @@ model Pedido {
   items        PedidoItem[]
 }
 
-
 model PedidoItem {
   id           Int       @id @default(autoincrement())
   pedido       Pedido    @relation(fields: [pedidoId], references: [id])
@@ -165,15 +162,11 @@ model PedidoItem {
   subtotal       Float   // precioUnitario * cantidad
 }
 
-
-
 enum EstadoPedido {
   EN_PROCESO
   EN_CAMINO
   ENTREGADO
 }
-
-
 
 model Direccion {
   id        Int       @id @default(autoincrement())

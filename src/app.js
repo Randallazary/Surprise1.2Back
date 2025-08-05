@@ -18,6 +18,8 @@ import descuento from './routes/Descuentos.routes.js';
 import contactanos from './routes/Contactanos.routes.js';
 import reloj from './routes/Reloj.routes.js';
 import carrito from './routes/Carrito.routes.js';
+import pedidos from './routes/Pedidos.routes.js';
+import paypalRoutes from './routes/paypal.routes.js';
 
 
 // Configuración CORS
@@ -108,6 +110,8 @@ app.use('/api/descuento', descuento);
 app.use('/api/contactanos', contactanos);
 app.use('/api/reloj', reloj);
 app.use('/api/carrito', carrito);
+app.use('/api/pedidos', pedidos)
+app.use('/api/paypal', paypalRoutes);
 
 
 // Ruta de prueba
