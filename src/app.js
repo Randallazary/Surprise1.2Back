@@ -92,7 +92,7 @@ app.use(
 );
 
 // ==================== MIDDLEWARES ====================
-app.use(corsMiddleware)
+app.use(corsMiddleware())
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
