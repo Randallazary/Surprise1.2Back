@@ -26,7 +26,7 @@ import paypalRoutes from './routes/paypal.routes.js';
 // Configuración CORS
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://surprise1-2.vercel.app',
+  'https://surprise1-2.vercel.app/api',
   'https://surprisewebapp.netlify.app',
   'http://10.0.2.16', // Emulador de Android
   'http://192.168.43.190' // IP local del dispositivo
