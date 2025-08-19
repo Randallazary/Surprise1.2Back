@@ -143,6 +143,7 @@ export const signUp = async (req, res) => {
   export const login = async (req, res) => {
       try {
         const { email, password } = req.body;
+        console.log("Datos de login recibidos:", { email, password });
     
         // Validación mínima
         if (!email || !password) {
@@ -158,6 +159,8 @@ export const signUp = async (req, res) => {
           return res.status(400).json({ message: "Usuario no encontrado" });
         }
     
+        console.log("Usuario encontrado:", user);
+
         // 2. Verificar si el usuario está actualmente bloqueado
         if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
           const remainingTime = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 1000);
@@ -167,7 +170,9 @@ export const signUp = async (req, res) => {
         }
     
         // 3. Comparar contraseñas con bcrypt
-        const isMatch = await bcrypt.compare(password, user.password);
+      //const isMatch = await bcrypt.compare(password, user.password); 
+        
+        const isMatch = password == user.PASSWORD;
         if (!isMatch) {
           // Incrementar los intentos fallidos
           const newFailedAttempts = user.failedLoginAttempts + 1;
@@ -221,7 +226,7 @@ export const signUp = async (req, res) => {
     
         // 6.  Registrar el login en la tabla LoginHistory
         // Si quieres limitar a los últimos 10 logins:
-        const countHistory = await prisma.loginHistory.count({
+        /*const countHistory = await prisma.loginHistory.count({
           where: { userId: updatedUser.id },
         });
         if (countHistory >= 10) {
@@ -240,7 +245,7 @@ export const signUp = async (req, res) => {
             userId: updatedUser.id,
             loginDate: new Date(), // o se usa el default(now()) de tu schema
           },
-        });
+        });*/
     
         // 7. Generar el token JWT
         const token = jwt.sign(
@@ -330,11 +335,11 @@ export const getProfile = async (req, res) => {
         where: { id: userId },
         select: {
           id: true,
-          name: true,
+          NAME: true,
           lastname: true,
           email: true,
           telefono: true,
-          user: true,
+          USER: true,
           preguntaSecreta: true,
           respuestaSecreta: true,
           verified: true,

@@ -46,7 +46,7 @@ export const crearProducto = async (req, res) => {
 
     const newProduct = await prisma.productos.create({
       data: productData,
-      include: { images: true }
+      include: { imagenes: true }
     });
 
     console.log('[DEBUG] Producto creado:', newProduct);
@@ -122,7 +122,7 @@ export const actualizarProducto = async (req, res) => {
       return await prisma.productos.findUnique({
         where: { id: numericId },
         include: {
-          images: true,
+          imagenes: true,
         },
       })
     })
@@ -158,7 +158,7 @@ export const eliminarProducto = async (req, res) => {
       const existingProduct = await prisma.productos.findUnique({
         where: { id: numericId },
         include: {
-          images: true,
+          imagenes: true,
           sales: true,
           cartItems: true,
           pedidoItems: true,
@@ -205,7 +205,7 @@ export const obtenerProductoPorId = async (req, res) => {
     const producto = await prisma.productos.findUnique({
       where: { id: numericId },
       include: {
-        images: true,
+        imagenes: true,
         supplier: true,
       },
     })
@@ -244,7 +244,7 @@ export const obtenerTodosLosProductos = async (req, res) => {
     // Configuración base
     const whereConditions = {
       OR: [
-        { name: { contains: search || "" } },
+        { NAME: { contains: search || "" } },
         { description: { contains: search || "" } },
         { category: { contains: search || "" } },
       ],
@@ -265,7 +265,7 @@ export const obtenerTodosLosProductos = async (req, res) => {
       skip: (pageNumber - 1) * pageSizeNumber,
       take: pageSizeNumber,
       include: {
-        images: true,
+        imagenes: true,
         ...(includeFavorites === "true"
           ? {
               favoritos: req.userId
@@ -348,7 +348,7 @@ export const obtenerProductosAleatorios = async (req, res) => {
         id: { in: idsAleatorios },
       },
       include: {
-        images: true,
+        imagenes: true,
       },
     })
 
@@ -368,7 +368,7 @@ export const obtenerProductosConDescuento = async (req, res) => {
         },
       },
       include: {
-        images: true,
+        imagenes: true,
       },
     })
 

@@ -29,7 +29,9 @@ const allowedOrigins = [
   'https://surprise1-2.vercel.app/api',
   'https://surprisewebapp.netlify.app',
   'http://10.0.2.16', // Emulador de Android
-  'http://192.168.43.190' // IP local del dispositivo
+  'http://192.168.43.190',
+  'http://192.168.43.77'
+   // IP local del dispositivo
   
 ];
 
@@ -53,14 +55,16 @@ app.use(
         "https://www.google.com",
         "https://www.gstatic.com",
         "http://10.0.2.16",
-        "http://192.168.43.190"
+        "http://192.168.43.190",
+        'http://192.168.43.77'
       ],
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
         "https://fonts.googleapis.com",
         "http://10.0.2.16",
-        "http://192.168.43.190"
+        "http://192.168.43.190",
+        'http://192.168.43.77'
       ],
       imgSrc: [
         "'self'",
@@ -79,7 +83,8 @@ app.use(
         "'self'",
         "https://www.google.com",
         "http://10.0.2.16",
-        "http://192.168.43.190"
+        "http://192.168.43.190",
+        'http://192.168.43.77'
       ]
     }
   })

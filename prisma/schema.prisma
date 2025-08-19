@@ -1,185 +1,199 @@
-datasource db {
-  provider = "mysql"  // Cambiado de sqlserver a mysql
-  url      = env("DATABASE_URL")  // Asegúrate de que tu .env apunte a MySQL
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-model Usuarios {
-  id                  Int             @id @default(autoincrement())
-  name                String
-  lastname            String
-  email               String          @unique
-  telefono            String
-  user                String
-  preguntaSecreta     String
-  respuestaSecreta    String
-  password            String
-  verified            Boolean         @default(false)
-  role                String          @default("normal")
-  failedLoginAttempts Int             @default(0)
-  lockedUntil         DateTime?
-  blocked             Boolean         @default(false)
-  lockCount           Int             @default(0)
-  lastLogin           DateTime?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  codigoAcceso        String          @unique
-  
-  cart    Cart?   @relation(fields: [cartId], references: [id])
-  cartId  Int?    @unique
-  loginHistories      LoginHistory[]
-  pedidos Pedido[]
- 
-  direcciones  Direccion[]  // Relación inversa
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-model LoginHistory {
-  id         Int       @id @default(autoincrement())
-  loginDate  DateTime  @default(now())
-  userId     Int
-  usuarios   Usuarios  @relation(fields: [userId], references: [id])
+model cart {
+  id                             Int        @id @default(autoincrement())
+  userId                         Int        @unique(map: "userId")
+  createdAt                      DateTime?  @default(now()) @db.DateTime(0)
+  updatedAt                      DateTime?  @default(now()) @db.DateTime(0)
+  usuarios_cart_userIdTousuarios usuarios   @relation("cart_userIdTousuarios", fields: [userId], references: [id], onUpdate: Restrict, map: "fk_cart_user")
+  cartitem                       cartitem[]
+  usuarios_usuarios_cartIdTocart usuarios?  @relation("usuarios_cartIdTocart")
 }
 
-model Productos {
-  id           Int           @id @default(autoincrement())
-  name         String        // MySQL no necesita @db.VarChar, usa String directamente
-  description  String
-  price        Float         @default(0)
-  stock        Int           @default(0)
-  category     String
-  ocasion      String?      
-  discount     Float?        @default(0)
-  images       Imagenes[]
-  sales        Sales[]
-  cartItems    CartItem[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  pedidoItems PedidoItem[]
- 
-}
-
-model Cart {
+model cartitem {
   id        Int       @id @default(autoincrement())
-  userId    Int       @unique
-  usuarios  Usuarios?
-  items     CartItem[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  cartId    Int
+  productId Int
+  quantity  Int?      @default(1)
+  addedAt   DateTime? @default(now()) @db.DateTime(0)
+  cart      cart      @relation(fields: [cartId], references: [id], onUpdate: Restrict, map: "fk_cartitem_cart")
+  productos productos @relation(fields: [productId], references: [id], onUpdate: Restrict, map: "fk_cartitem_producto")
+
+  @@unique([cartId, productId], map: "unique_cart_product")
+  @@index([productId], map: "fk_cartitem_producto")
 }
 
-model CartItem {
+model deslindederesponsabilidad {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(255)
+  content       String    @db.Text
+  effectiveDate DateTime  @db.DateTime(0)
+  isCurrent     Boolean?  @default(false)
+  createdAt     DateTime? @default(now()) @db.DateTime(0)
+  updatedAt     DateTime? @default(now()) @db.DateTime(0)
+}
+
+model direccion {
+  id       Int       @id @default(autoincrement())
+  calle    String    @db.VarChar(255)
+  numero   String    @db.VarChar(50)
+  ciudad   String    @db.VarChar(100)
+  estado   String    @db.VarChar(100)
+  pais     String    @db.VarChar(100)
+  cp       String    @db.VarChar(20)
+  userId   Int?
+  usuarios usuarios? @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_direccion_usuario")
+  pedido   pedido[]
+
+  @@index([userId], map: "fk_direccion_usuario")
+}
+
+model imagenes {
+  id        Int       @id @default(autoincrement())
+  url       String    @db.VarChar(500)
+  productId Int
+  productos productos @relation(fields: [productId], references: [id], onUpdate: Restrict, map: "fk_imagen_producto")
+
+  @@index([productId], map: "fk_imagen_producto")
+}
+
+model loginhistory {
+  id        Int       @id @default(autoincrement())
+  loginDate DateTime? @default(now()) @db.DateTime(0)
+  userId    Int
+  usuarios  usuarios  @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "fk_loginhistory_user")
+
+  @@index([userId], map: "fk_loginhistory_user")
+}
+
+model logos {
   id          Int       @id @default(autoincrement())
-  cart        Cart      @relation(fields: [cartId], references: [id])
-  cartId      Int
-  product     Productos @relation(fields: [productId], references: [id])
-  productId   Int
-  quantity    Int       @default(1)
-  addedAt     DateTime  @default(now())
-  @@unique([cartId, productId])
+  url         String    @db.VarChar(500)
+  fechaSubida DateTime? @default(now()) @db.DateTime(0)
+  autor       String    @db.VarChar(255)
+  createdAt   DateTime? @default(now()) @db.DateTime(0)
+  updatedAt   DateTime? @default(now()) @db.DateTime(0)
 }
 
-model Imagenes {
+model pedido {
+  id          Int            @id @default(autoincrement())
+  clienteId   Int
+  direccionId Int
+  estado      pedido_estado? @default(EN_PROCESO)
+  total       Float          @db.Float
+  createdAt   DateTime?      @default(now()) @db.DateTime(0)
+  updatedAt   DateTime?      @default(now()) @db.DateTime(0)
+  usuarios    usuarios       @relation(fields: [clienteId], references: [id], onUpdate: Restrict, map: "fk_pedido_cliente")
+  direccion   direccion      @relation(fields: [direccionId], references: [id], onUpdate: Restrict, map: "fk_pedido_direccion")
+  pedidoitem  pedidoitem[]
+
+  @@index([clienteId], map: "fk_pedido_cliente")
+  @@index([direccionId], map: "fk_pedido_direccion")
+}
+
+model pedidoitem {
+  id             Int       @id @default(autoincrement())
+  pedidoId       Int
+  productoId     Int
+  cantidad       Int
+  precioUnitario Float     @db.Float
+  subtotal       Float     @db.Float
+  pedido         pedido    @relation(fields: [pedidoId], references: [id], onUpdate: Restrict, map: "fk_pedidoitem_pedido")
+  productos      productos @relation(fields: [productoId], references: [id], onUpdate: Restrict, map: "fk_pedidoitem_producto")
+
+  @@index([pedidoId], map: "fk_pedidoitem_pedido")
+  @@index([productoId], map: "fk_pedidoitem_producto")
+}
+
+model politicasdeprivacidad {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(255)
+  content       String    @db.Text
+  effectiveDate DateTime  @db.DateTime(0)
+  isCurrent     Boolean?  @default(false)
+  createdAt     DateTime? @default(now()) @db.DateTime(0)
+  updatedAt     DateTime? @default(now()) @db.DateTime(0)
+}
+
+model productos {
+  id          Int          @id @default(autoincrement())
+  NAME        String       @db.VarChar(255)
+  description String       @db.Text
+  price       Float?       @default(0) @db.Float
+  stock       Int?         @default(0)
+  category    String       @db.VarChar(100)
+  ocasion     String?      @db.VarChar(100)
+  discount    Float?       @default(0) @db.Float
+  createdAt   DateTime?    @default(now()) @db.DateTime(0)
+  updatedAt   DateTime?    @default(now()) @db.DateTime(0)
+  cartitem    cartitem[]
+  imagenes    imagenes[]
+  pedidoitem  pedidoitem[]
+  sales       sales[]
+}
+
+model sales {
   id         Int       @id @default(autoincrement())
-  url        String
   productId  Int
-  producto   Productos @relation(fields: [productId], references: [id])
+  quantity   Int?      @default(1)
+  salePrice  Float     @db.Float
+  total      Float     @db.Float
+  saleDate   DateTime? @default(now()) @db.DateTime(0)
+  customerId Int?
+  productos  productos @relation(fields: [productId], references: [id], onUpdate: Restrict, map: "fk_sales_producto")
+
+  @@index([productId], map: "fk_sales_producto")
 }
 
-model Sales {
-  id          Int       @id @default(autoincrement())
-  productId   Int
-  product     Productos @relation(fields: [productId], references: [id])
-  quantity    Int       @default(1)
-  salePrice   Float
-  total       Float
-  saleDate    DateTime  @default(now())
-  customerId  Int?
+model terminosycondiciones {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(255)
+  content       String    @db.Text
+  effectiveDate DateTime  @db.DateTime(0)
+  isCurrent     Boolean?  @default(false)
+  createdAt     DateTime? @default(now()) @db.DateTime(0)
+  updatedAt     DateTime? @default(now()) @db.DateTime(0)
 }
 
-model Logos {
-  id          Int      @id @default(autoincrement())
-  url         String
-  fechaSubida DateTime @default(now())
-  autor       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model usuarios {
+  id                         Int            @id @default(autoincrement())
+  NAME                       String         @db.VarChar(255)
+  lastname                   String         @db.VarChar(255)
+  email                      String         @unique(map: "email") @db.VarChar(255)
+  telefono                   String         @db.VarChar(50)
+  USER                       String         @db.VarChar(100)
+  preguntaSecreta            String         @db.VarChar(255)
+  respuestaSecreta           String         @db.VarChar(255)
+  PASSWORD                   String         @db.VarChar(255)
+  codigo_acceso              String         @unique(map: "codigo_acceso") @db.VarChar(255)
+  verified                   Boolean?       @default(false)
+  role                       String?        @default("normal") @db.VarChar(50)
+  failedLoginAttempts        Int?           @default(0)
+  lockedUntil                DateTime?      @db.DateTime(0)
+  blocked                    Boolean?       @default(false)
+  lockCount                  Int?           @default(0)
+  lastLogin                  DateTime?      @db.DateTime(0)
+  createdAt                  DateTime?      @default(now()) @db.DateTime(0)
+  updatedAt                  DateTime?      @default(now()) @db.DateTime(0)
+  cartId                     Int?           @unique(map: "cartId")
+  cart_cart_userIdTousuarios cart?          @relation("cart_userIdTousuarios")
+  direccion                  direccion[]
+  loginhistory               loginhistory[]
+  pedido                     pedido[]
+  cart_usuarios_cartIdTocart cart?          @relation("usuarios_cartIdTocart", fields: [cartId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_usuarios_cart")
 }
 
-model TerminosYCondiciones {
-  id            Int      @id @default(autoincrement())
-  title         String
-  content       String
-  effectiveDate DateTime
-  isCurrent     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model PoliticasDePrivacidad {
-  id            Int      @id @default(autoincrement())
-  title         String
-  content       String
-  effectiveDate DateTime
-  isCurrent     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model DeslindeDeResponsabilidad {
-  id            Int      @id @default(autoincrement())
-  title         String
-  content       String
-  effectiveDate DateTime
-  isCurrent     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model Pedido {
-  id           Int           @id @default(autoincrement())
-  clienteId    Int
-  direccionId  Int           // ← NUEVO
-  estado       EstadoPedido  @default(EN_PROCESO)
-  total        Float
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  cliente      Usuarios      @relation(fields: [clienteId], references: [id])
-  direccion    Direccion     @relation(fields: [direccionId], references: [id])
-  items        PedidoItem[]
-}
-
-model PedidoItem {
-  id           Int       @id @default(autoincrement())
-  pedido       Pedido    @relation(fields: [pedidoId], references: [id])
-  pedidoId     Int
-  producto     Productos @relation(fields: [productoId], references: [id])
-  productoId   Int
-  cantidad     Int
-  precioUnitario Float   // Precio del producto al momento de la compra
-  subtotal       Float   // precioUnitario * cantidad
-}
-
-enum EstadoPedido {
+enum pedido_estado {
   EN_PROCESO
   EN_CAMINO
   ENTREGADO
   CANCELADO
   COMPLETADO
-}
-
-model Direccion {
-  id        Int       @id @default(autoincrement())
-  calle     String
-  numero    String
-  ciudad    String
-  estado    String
-  pais      String
-  cp        String
-  user      Usuarios? @relation(fields: [userId], references: [id])
-  userId    Int?
-  pedidos   Pedido[]
 }

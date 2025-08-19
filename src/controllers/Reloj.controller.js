@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 export const obtenerPedidosPorEstado = async (req, res) => {
     try {
         const { estado, id } = req.query;
+        console.log("Estado recibido:", estado, "ID cliente:", id);
 
 
         const estadosValidos = ["EN_PROCESO", "EN_CAMINO", "ENTREGADO"];
@@ -18,19 +19,21 @@ export const obtenerPedidosPorEstado = async (req, res) => {
         const pedidos = await prisma.pedido.findMany({
             where: { estado: estado, clienteId: id ? Number(id) : undefined },
             include: {
-                cliente: {
-                    select: { id: true, name: true, lastname: true }
+                usuarios: {
+                    select: { id: true, NAME: true, lastname: true }
                 },
-                items: {
+                pedidoitem: {
                     include: {
-                        producto: {
-                            select: { id: true, name: true }
+                        productos: {
+                            select: { id: true, NAME: true }
                         }
                     }
                 }
             },
             orderBy: { createdAt: "desc" }
         });
+    
+
 
         return res.status(200).json({
             success: true,
@@ -56,13 +59,13 @@ export const verificarCodigo = async (req, res) => {
          // Buscar usuario
         const usuario = await prisma.usuarios.findUnique({
             where: { 
-                codigoAcceso: codigo,
+                codigo_acceso: codigo,
                 blocked: false,
                 
             },
             select: {
                 id: true,
-                name: true,
+                NAME: true,
                 lastname: true,
                 
             }
@@ -94,7 +97,7 @@ export const verificarCodigo = async (req, res) => {
             message: "Autenticación exitosa",
             user: {
                 id: usuario.id,
-                name: `${usuario.name} ${usuario.lastname}`,
+                name: `${usuario.NAME} ${usuario.lastname}`,
                 
             }
         });

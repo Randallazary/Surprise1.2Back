@@ -19,17 +19,17 @@ export const obtenerPedidosUsuario = async (req, res) => {
         skip,
         take: Number(limit),
         include: {
-          items: {
+          pedidoitem: {
             select: {
               cantidad: true,
               precioUnitario: true,
               subtotal: true,
-              producto: {
+              productos: {
                 select: {
-                  name: true,
-                  partNumber: true,
-                  brand: true,
-                  images: { take: 1 } // Solo la primera imagen para listado
+                  NAME: true,
+                  
+              
+                  imagenes: { take: 1 } // Solo la primera imagen para listado
                 }
               }
             }
@@ -77,19 +77,17 @@ export const obtenerPedidoPorId = async (req, res) => {
         clienteId: userId
       },
       include: {
-        items: {
+        pedidoitem: {
           select: {
             cantidad: true,
             precioUnitario: true,
             subtotal: true,
             producto: {
               select: {
-                name: true,
+                NAME: true,
                 description: true,
                 price: true,
-                partNumber: true,
-                brand: true,
-                images: true,
+                imagenes: true,
                 category: true
               }
             }
@@ -105,9 +103,9 @@ export const obtenerPedidoPorId = async (req, res) => {
             cp: true
           }
         },
-        cliente: {
+        usuarios: {
           select: {
-            name: true,
+            NAME: true,
             lastname: true,
             email: true,
             telefono: true
