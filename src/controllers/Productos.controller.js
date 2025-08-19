@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client"
-import { ocasionService } from '../../services/ocasion.service.js';
+
 
 const prisma = new PrismaClient()
 
