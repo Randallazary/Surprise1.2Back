@@ -20,7 +20,6 @@ import reloj from './routes/Reloj.routes.js';
 import carrito from './routes/Carrito.routes.js';
 import pedidos from './routes/Pedidos.routes.js';
 import paypalRoutes from './routes/paypal.routes.js';
-import { corsMiddleware } from './cors.js';
 
 
 
@@ -92,7 +91,18 @@ app.use(
 );
 
 // ==================== MIDDLEWARES ====================
-app.use(corsMiddleware())
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
