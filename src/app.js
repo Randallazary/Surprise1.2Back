@@ -4,7 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import path from 'path';
-import logger from './utils/logger.js'; // Importación corregida
+
 
 // Importación de rutas
 import user from './routes/User.routes.js';
@@ -105,7 +105,7 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 
 // Logger middleware (importado desde utils/logger.js)
-app.use(logger);
+
 
 // ==================== RUTAS ====================
 app.use('/api/auth', user);
