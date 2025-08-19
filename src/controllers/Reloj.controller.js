@@ -1,48 +1,109 @@
-    import { PrismaClient } from "@prisma/client";
-    const prisma = new PrismaClient();
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
-    
-    export const obtenerPedidosPorEstado = async (req, res) => {
+// Controlador para obtener pedidos por estado
+export const obtenerPedidosPorEstado = async (req, res) => {
     try {
-        const { estado } = req.query;
+        const { estado, id } = req.query;
 
-        // Validar que el estado sea uno de los válidos
+
         const estadosValidos = ["EN_PROCESO", "EN_CAMINO", "ENTREGADO"];
         if (!estado || !estadosValidos.includes(estado)) {
-        return res.status(400).json({ message: "Estado de pedido inválido" });
+            return res.status(400).json({ 
+                success: false,
+                message: "Estado de pedido inválido. Use: EN_PROCESO, EN_CAMINO o ENTREGADO" 
+            });
         }
 
         const pedidos = await prisma.pedido.findMany({
-        where: {
-            estado: estado,
-        },
-        include: {
-            cliente: {
+            where: { estado: estado, clienteId: id ? Number(id) : undefined },
+            include: {
+                cliente: {
+                    select: { id: true, name: true, lastname: true }
+                },
+                items: {
+                    include: {
+                        producto: {
+                            select: { id: true, name: true }
+                        }
+                    }
+                }
+            },
+            orderBy: { createdAt: "desc" }
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: pedidos
+        });
+
+    } catch (error) {
+        console.error("Error al obtener pedidos:", error);
+        return res.status(500).json({ 
+            success: false,
+            message: "Error interno del servidor" 
+        });
+    }
+};
+
+// Controlador para verificación de código de acceso
+export const verificarCodigo = async (req, res) => {
+    const { codigo } = req.params;
+    console.log("Código recibido:", codigo);
+    try {
+        
+       
+         // Buscar usuario
+        const usuario = await prisma.usuarios.findUnique({
+            where: { 
+                codigoAcceso: codigo,
+                blocked: false,
+                
+            },
             select: {
                 id: true,
                 name: true,
                 lastname: true,
-            },
-            },
-            items: {
-            include: {
-                producto: {
-                select: {
-                    id: true,
-                    name: true,
-                },
-                },
-            },
-            },
-        },
-        orderBy: {
-            createdAt: "desc",
-        },
+                
+            }
         });
 
-        return res.status(200).json(pedidos);
+        if (!usuario) {
+            return res.status(401).json({
+                success: false,
+                message: "Código inválido, usuario bloqueado o no verificado"
+            });
+        }
+
+        // Resetear intentos fallidos si el login es exitoso
+        if (usuario.failedLoginAttempts > 0) {
+            await prisma.usuarios.update({
+                where: { id: usuario.id },
+                data: { failedLoginAttempts: 0 }
+            });
+        }
+
+        // Registrar último login
+        await prisma.usuarios.update({
+            where: { id: usuario.id },
+            data: { lastLogin: new Date() }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Autenticación exitosa",
+            user: {
+                id: usuario.id,
+                name: `${usuario.name} ${usuario.lastname}`,
+                
+            }
+        });
+
     } catch (error) {
-        console.error("Error al obtener pedidos por estado:", error);
-        return res.status(500).json({ message: "Error interno del servidor" });
+        console.error("Error en verificación de código:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error interno del servidor"
+        });
     }
-    };
+};

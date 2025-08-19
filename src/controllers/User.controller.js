@@ -10,76 +10,91 @@ const SECRET = process.env.SECRET || 'super-secret-key'; // ⚠️ No almacenar 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOGIN_TIMEOUT = 1 * 60 * 1000;
 
+import crypto from 'crypto';
+
 //Registro de usuario y verificación de cuenta
 export const signUp = async (req, res) => {
-    try {
-      const { 
-        name, 
-        lastname, 
-        email, 
-        telefono, 
-        user, 
-        preguntaSecreta, 
-        respuestaSecreta, 
-        password 
-      } = req.body;
-  
-      //Validaciones para evitar datos inválidos o incompletos
-      if (!name || !lastname || name.length < 2 || lastname.length < 2) {
-        return res.status(400).json({ message: "Datos incompletos o inválidos" });
-      }
-      //Verificar si el correo ya está registrado para evitar duplicados
-      const existingUser = await prisma.usuarios.findUnique({ where: { email } });
-      if (existingUser)  {
-        return res.status(400).json({ message: "El correo ya existe" });
-      }  
-      //Hashear la contraseña antes de guardarla (bcrypt con salt)
-      const hashedPassword = await bcrypt.hash(password, 10);
-  
-      //Generar un token de verificación con expiración segura
-      const token = jwt.sign({ email }, SECRET, { expiresIn: '1h' });
-  
-      // 💌 Enviar correo de verificación con enlace único
-      const verificationUrl = `http://localhost:3000/verify/${token}`;
-      //const verificationUrl = `https://surprise1-2.vercel.app/verify/${token}`;
+  try {
+    const { 
+      name, 
+      lastname, 
+      email, 
+      telefono, 
+      user, 
+      preguntaSecreta, 
+      respuestaSecreta, 
+      password 
+    } = req.body;
 
-      await transporter.sendMail({
-        from: '"Soporte Tecnico" <randyrubio06@gmail.com>',
-        to: email,
-        subject: "Verifica tu cuenta ✔️",
-        html: `
-          <p>Hola ${name},</p>
-          <p>Haz clic en el enlace para verificar tu cuenta:</p>
-          <a href="${verificationUrl}">Verificar Cuenta</a>
-          <p>Este enlace expirará en 1 hora.</p>
-        `
-
-      });
-  
-      // 📊 Guardar usuario en la base de datos con campo de verificación inicializado en `false`
-      await prisma.usuarios.create({
-        data: {
-          name,
-          lastname,
-          email,
-          telefono,
-          user,
-          preguntaSecreta,
-          respuestaSecreta,
-          password: hashedPassword,
-          verified: false, // ⚠️ Importante: No marcar usuarios como verificados por defecto
-        },
-      });
-  
-      // ✅ Respuesta exitosa asegurando información mínima en la respuesta
-      res.status(200).json({
-        message: "Usuario registrado exitosamente. Revisa tu correo para verificar tu cuenta."
-      });
-    } catch (error) {
-      console.error("Error en signUp:", error);
-      res.status(500).json({ message: "Error interno del servidor" });
+    // Validaciones para evitar datos inválidos o incompletos
+    if (!name || !lastname || name.length < 2 || lastname.length < 2) {
+      return res.status(400).json({ message: "Datos incompletos o inválidos" });
     }
-  };
+
+    // Verificar si el correo ya está registrado
+    const existingUser = await prisma.usuarios.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: "El correo ya existe" });
+    }
+
+    // Hashear la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generar un token de verificación
+    const token = jwt.sign({ email }, SECRET, { expiresIn: '1h' });
+
+    // Enviar correo de verificación
+    const verificationUrl = `http://localhost:3000/verify/${token}`;
+    // const verificationUrl = `https://surprise1-2.vercel.app/verify/${token}`;
+    await transporter.sendMail({
+      from: '"Soporte Tecnico" <randyrubio06@gmail.com>',
+      to: email,
+      subject: "Verifica tu cuenta ✔️",
+      html: `
+        <p>Hola ${name},</p>
+        <p>Haz clic en el enlace para verificar tu cuenta:</p>
+        <a href="${verificationUrl}">Verificar Cuenta</a>
+        <p>Este enlace expirará en 1 hora.</p>
+      `
+    });
+
+    // Generar código único de acceso (6 caracteres alfanuméricos)
+    let codigoAcceso;
+    let codigoExiste = true;
+    while (codigoExiste) {
+      codigoAcceso = crypto.randomBytes(3).toString('hex').toUpperCase(); // Ej: 'A1B2C3'
+      const checkCodigo = await prisma.usuarios.findUnique({
+        where: { codigoAcceso }
+      });
+      codigoExiste = !!checkCodigo; // Si existe, repetimos
+    }
+
+    // Guardar usuario en la base de datos
+    await prisma.usuarios.create({
+      data: {
+        name,
+        lastname,
+        email,
+        telefono,
+        user,
+        preguntaSecreta,
+        respuestaSecreta,
+        password: hashedPassword,
+        verified: false, // No verificado por defecto
+        codigoAcceso // Guardamos el código aleatorio
+      },
+    });
+
+    // Respuesta exitosa
+    res.status(200).json({
+      message: "Usuario registrado exitosamente. Revisa tu correo para verificar tu cuenta."
+    });
+  } catch (error) {
+    console.error("Error en signUp:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
 
 
   export const verifyAccount = async (req, res) => {

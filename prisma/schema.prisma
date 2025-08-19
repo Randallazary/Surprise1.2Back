@@ -26,6 +26,7 @@ model Usuarios {
   lastLogin           DateTime?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
+  codigoAcceso        String          @unique
   
   cart    Cart?   @relation(fields: [cartId], references: [id])
   cartId  Int?    @unique
@@ -166,6 +167,8 @@ enum EstadoPedido {
   EN_PROCESO
   EN_CAMINO
   ENTREGADO
+  CANCELADO
+  COMPLETADO
 }
 
 model Direccion {

@@ -22,12 +22,15 @@ import pedidos from './routes/Pedidos.routes.js';
 import paypalRoutes from './routes/paypal.routes.js';
 
 
+
 // Configuración CORS
 const allowedOrigins = [
   'http://localhost:3000',
   'https://surprise1-2.vercel.app',
   'https://surprisewebapp.netlify.app',
-  'http://10.0.2.16' // Emulador de Android
+  'http://10.0.2.16', // Emulador de Android
+  'http://192.168.43.190' // IP local del dispositivo
+  
 ];
 
 const app = express();
@@ -48,12 +51,16 @@ app.use(
         "'self'",
         "'unsafe-inline'",
         "https://www.google.com",
-        "https://www.gstatic.com"
+        "https://www.gstatic.com",
+        "http://10.0.2.16",
+        "http://192.168.43.190"
       ],
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
-        "https://fonts.googleapis.com"
+        "https://fonts.googleapis.com",
+        "http://10.0.2.16",
+        "http://192.168.43.190"
       ],
       imgSrc: [
         "'self'",
@@ -70,7 +77,9 @@ app.use(
       ],
       frameSrc: [
         "'self'",
-        "https://www.google.com"
+        "https://www.google.com",
+        "http://10.0.2.16",
+        "http://192.168.43.190"
       ]
     }
   })
@@ -112,6 +121,7 @@ app.use('/api/reloj', reloj);
 app.use('/api/carrito', carrito);
 app.use('/api/pedidos', pedidos)
 app.use('/api/paypal', paypalRoutes);
+
 
 
 // Ruta de prueba

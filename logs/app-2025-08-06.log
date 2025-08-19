@@ -1,0 +1,5 @@
+2025-08-06 20:55:53 [INFO] HTTP Request Success | {"method":"GET","url":"/","status":200,"duration":"53ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-08-06 20:55:53 [WARN] HTTP Request Warning | {"method":"GET","url":"/favicon.ico","status":404,"duration":"3ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-08-06 20:58:59 [WARN] HTTP Request Warning | {"method":"GET","url":"/api","status":404,"duration":"24ms","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64"}
+2025-08-06 21:09:21 [INFO] HTTP Request Success | {"method":"GET","url":"/","status":200,"duration":"22ms","ip":"192.168.43.190","userAgent":"Mozilla/5.0 (Linux; Android 10; K) Apple"}
+2025-08-06 22:20:06 [INFO] HTTP Request Success | {"method":"GET","url":"/api/reloj/pedidos?estado=EN_PROCESO","status":200,"duration":"309ms","ip":"127.0.0.1","userAgent":"okhttp/3.14.9"}

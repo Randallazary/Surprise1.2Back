@@ -1,0 +1,4 @@
+2025-08-08 18:43:15 [INFO] HTTP Request Success | {"method":"GET","url":"/api/reloj/pedidos?estado=EN_PROCESO","status":200,"duration":"103ms","ip":"127.0.0.1","userAgent":"okhttp/3.14.9"}
+2025-08-08 18:43:19 [INFO] HTTP Request Success | {"method":"GET","url":"/api/reloj/pedidos?estado=COMPLETADO","status":200,"duration":"5ms","ip":"127.0.0.1","userAgent":"okhttp/3.14.9"}
+2025-08-08 18:43:22 [INFO] HTTP Request Success | {"method":"GET","url":"/api/reloj/pedidos?estado=CANCELADO","status":200,"duration":"4ms","ip":"127.0.0.1","userAgent":"okhttp/3.14.9"}
+2025-08-08 18:43:26 [ERROR] HTTP Request Error | {"method":"GET","url":"/api/reloj/pedidos?estado=TODOS","status":500,"duration":"10ms","ip":"127.0.0.1","userAgent":"okhttp/3.14.9"}
